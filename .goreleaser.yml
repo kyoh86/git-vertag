@@ -1,0 +1,41 @@
+project_name: git-vertag
+release:
+  github:
+    owner: kyoh86
+    name: git-vertag
+brew:
+  install: bin.install "git-vertag"
+  github:
+    owner: kyoh86
+    name: homebrew-tap
+  folder: Formula
+  caveats: Now it's alpha version yet.
+  homepage: https://github.com/kyoh86/git-vertag
+  description: A tool to manage version-tag with the semantic versioning specification.
+builds:
+- goos:
+  - linux
+  - darwin
+  goarch:
+  - amd64
+  - "386"
+  goarm:
+  - "6"
+  main: .
+  ldflags: -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+  binary: git-vertag
+archive:
+  format: tar.gz
+  name_template: '{{ .Binary }}_{{.Version}}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{
+    .Arm }}{{ end }}'
+  files:
+  - licence*
+  - LICENCE*
+  - license*
+  - LICENSE*
+  - readme*
+  - README*
+  - changelog*
+  - CHANGELOG*
+snapshot:
+  name_template: SNAPSHOT-{{ .Commit }}

@@ -15,13 +15,14 @@ import (
 )
 
 var cwd string
+var version = "snapshot"
 
 func main() {
 	// Set command name and description
 	app := kingpin.New(
 		"git-vertag",
 		"A tool to manage version-tag with the semantic versioning specification.",
-	).Author("kyoh86")
+	).Author("kyoh86").Version(version)
 
 	app.Flag("current-directory", "Run as if git was started in <path> instead of the current working directory.").Short('C').PlaceHolder("<path>").ExistingDirVar(&cwd)
 
