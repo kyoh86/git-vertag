@@ -1,13 +1,16 @@
-test:
-	go test $(shell go list ./... | grep -vFe'/vendor/')
+.PHONY: default gen test vendor install
 
-init:
-	dep init
+default:
+	echo use gen, test, vendor or install
+
+gen:
+	go generate ./...
+
+test:
+	go test ./...
 
 vendor:
 	dep ensure
 
-gen:
-	go generate $(shell go list ./... | grep -vFe'/vendor/')
-
-.PHONY: test init vendor gen
+install:
+	go install ./...
