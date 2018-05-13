@@ -20,4 +20,7 @@ git vertag --help-long
 
 ## License
 
-[MIT License](http://www.opensource.org/licenses/MIT)
+[![MIT License](http://img.shields.io/badge/license-MIT-blue.svg)](http://www.opensource.org/licenses/MIT)
+
+This is distributed under the [MIT License](http://www.opensource.org/licenses/MIT).
+
