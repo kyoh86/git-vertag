@@ -1,4 +1,4 @@
-.PHONY: default gen test vendor install
+.PHONY: default gen test install
 
 default:
 	echo use gen, test, vendor or install
@@ -8,9 +8,6 @@ gen:
 
 test:
 	go test ./...
-
-vendor:
-	dep ensure
 
 install:
 	go install ./...
