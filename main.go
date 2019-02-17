@@ -31,49 +31,67 @@ func main() {
 	majorCmd := app.Command("major", "Creates a tag for the next major version and prints it.")
 	minorCmd := app.Command("minor", "Creates a tag for the next minor version and prints it.")
 	patchCmd := app.Command("patch", "Creates a tag for the next patch version and prints it.")
-
 	for _, c := range []*kingpin.CmdClause{majorCmd, minorCmd, patchCmd} {
 		c.Flag("dry-run", "Without creating a new tag, show git command.").BoolVar(&dryRun)
 	}
 
-	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
-	case getCmd.FullCommand():
-		latest, err := latestVer()
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(latest)
-	case majorCmd.FullCommand():
-		latest, err := latestVer()
-		if err != nil {
-			panic(err)
-		}
-		latest.Major++
-		latest.Minor = 0
-		latest.Patch = 0
-		if err := createTag(latest, dryRun); err != nil {
-			panic(err)
-		}
-	case minorCmd.FullCommand():
-		latest, err := latestVer()
-		if err != nil {
-			panic(err)
-		}
-		latest.Minor++
-		latest.Patch = 0
-		if err := createTag(latest, dryRun); err != nil {
-			panic(err)
-		}
-	case patchCmd.FullCommand():
-		latest, err := latestVer()
-		if err != nil {
-			panic(err)
-		}
-		latest.Patch++
-		if err := createTag(latest, dryRun); err != nil {
-			panic(err)
-		}
+	cmds := map[string]func(bool) error{
+		getCmd.FullCommand():   getVersion,
+		majorCmd.FullCommand(): incrementMajor,
+		minorCmd.FullCommand(): incrementMinor,
+		patchCmd.FullCommand(): incrementPatch,
 	}
+	if err := cmds[kingpin.MustParse(app.Parse(os.Args[1:]))](dryRun); err != nil {
+		panic(err)
+	}
+}
+
+func getVersion(_ bool) error {
+	latest, err := latestVer()
+	if err != nil {
+		return err
+	}
+	fmt.Println(latest)
+	return nil
+}
+
+func incrementPatch(dryRun bool) error {
+	latest, err := latestVer()
+	if err != nil {
+		return err
+	}
+	latest.Patch++
+	if err := createTag(latest, dryRun); err != nil {
+		return err
+	}
+	return nil
+}
+
+func incrementMinor(dryRun bool) error {
+	latest, err := latestVer()
+	if err != nil {
+		return err
+	}
+	latest.Minor++
+	latest.Patch = 0
+	if err := createTag(latest, dryRun); err != nil {
+		return err
+	}
+	return nil
+}
+
+func incrementMajor(dryRun bool) error {
+	latest, err := latestVer()
+	if err != nil {
+		return err
+	}
+	latest.Major++
+	latest.Minor = 0
+	latest.Patch = 0
+	if err := createTag(latest, dryRun); err != nil {
+		return err
+	}
+	return nil
 }
 
 func gitCmd(args ...string) (*exec.Cmd, *bytes.Buffer) {
@@ -104,7 +122,9 @@ func createTag(v *Semver, dryRun bool) error {
 	if dryRun {
 		w := csv.NewWriter(os.Stdout)
 		w.Comma = ' '
-		w.Write(git.Args)
+		if err := w.Write(git.Args); err != nil {
+			return err
+		}
 		w.Flush()
 		return nil
 	}
