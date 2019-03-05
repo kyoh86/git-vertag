@@ -11,11 +11,17 @@ import (
 	"regexp"
 	"strconv"
 
-	kingpin "gopkg.in/alecthomas/kingpin.v2"
+	"github.com/alecthomas/kingpin"
 )
 
 var cwd string
-var version = "snapshot"
+
+// nolint
+var (
+	version = "snapshot"
+	commit  = "snapshot"
+	date    = "snapshot"
+)
 
 func main() {
 	// Set command name and description

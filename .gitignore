@@ -1,7 +1,15 @@
-### https://raw.github.com/github/gitignore/fad779220742a6d54ccfc0c1a0e5b3d820253de6/Go.gitignore
+# for goreleaser output with .goreleaser.yml
+/dist
+
+# for man file
+/git-vertag.1
+
+# go-junit-report output in .circleci/config
+/.circleci/test
 
 # Binaries for programs and plugins
 *.exe
+*.exe~
 *.dll
 *.so
 *.dylib

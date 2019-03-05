@@ -1,16 +1,19 @@
-.PHONY: default gen test install
+.PHONY: gen lint test install man
 
-default:
-	echo use gen, test, vendor or install
+VERSION := `git vertag get`
+COMMIT  := `git rev-parse HEAD`
 
 gen:
 	go generate ./...
 
-test:
-	go test -v -race ./...
-
-lint:
+lint: gen
 	gometalinter ./...
 
-install:
-	go install ./...
+test: lint
+	go test v --race ./...
+
+install: test
+	go install -a -ldflags "-X=main.version=$(VERSION) -X=main.commit=$(COMMIT)" ./...
+
+man: test
+	go run main.go --help-man > git-vertag.1

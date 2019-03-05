@@ -18,9 +18,8 @@ go get github.com/kyoh86/git-vertag
 git vertag --help-long
 ```
 
-## License
+# LICENSE
 
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg)](http://www.opensource.org/licenses/MIT)
 
 This is distributed under the [MIT License](http://www.opensource.org/licenses/MIT).
-
