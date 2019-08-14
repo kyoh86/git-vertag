@@ -33,7 +33,10 @@ func main() {
 	app.Flag("current-directory", "Run as if git was started in <path> instead of the current working directory.").Short('C').PlaceHolder("<path>").ExistingDirVar(&cwd)
 
 	var dryRun bool
+	var message []string
+	var file string
 	getCmd := app.Command("get", "Gets the current version tag.").Default()
+
 	majorCmd := app.Command("major", "Creates a tag for the next major version and prints it.")
 	minorCmd := app.Command("minor", "Creates a tag for the next minor version and prints it.")
 	patchCmd := app.Command("patch", "Creates a tag for the next patch version and prints it.")
@@ -41,9 +44,11 @@ func main() {
 	deleteCmd := app.Command("delete", "Deletes a tag for the last version and prints it.")
 	for _, c := range []*kingpin.CmdClause{majorCmd, minorCmd, patchCmd, replaceCmd, deleteCmd} {
 		c.Flag("dry-run", "Without creating a new tag, show git command.").BoolVar(&dryRun)
+		c.Flag("message", `Use the given tag message (instead of prompting). If multiple -m options are given, their values are concatenated as separate paragraphs.`).Short('m').StringsVar(&message)
+		c.Flag("file", `Take the tag message from the given file. Use - to read the message from the standard input`).Short('F').StringVar(&file)
 	}
 
-	cmds := map[string]func(bool) error{
+	cmds := map[string]func(bool, []string, string) error{
 		getCmd.FullCommand():     getVersion,
 		majorCmd.FullCommand():   incrementMajor,
 		minorCmd.FullCommand():   incrementMinor,
@@ -51,12 +56,12 @@ func main() {
 		replaceCmd.FullCommand(): replaceTag,
 		deleteCmd.FullCommand():  deleteTag,
 	}
-	if err := cmds[kingpin.MustParse(app.Parse(os.Args[1:]))](dryRun); err != nil {
+	if err := cmds[kingpin.MustParse(app.Parse(os.Args[1:]))](dryRun, message, file); err != nil {
 		panic(err)
 	}
 }
 
-func getVersion(_ bool) error {
+func getVersion(_ bool, _ []string, _ string) error {
 	latest, err := latestVer()
 	if err != nil {
 		return err
@@ -65,19 +70,7 @@ func getVersion(_ bool) error {
 	return nil
 }
 
-func deleteTag(dryRun bool) error {
-	latest, err := latestVer()
-	if err != nil {
-		return err
-	}
-	if err := removeTag(latest, dryRun); err != nil {
-		return err
-	}
-	fmt.Println(latest)
-	return nil
-}
-
-func replaceTag(dryRun bool) error {
+func deleteTag(dryRun bool, _ []string, _ string) error {
 	latest, err := latestVer()
 	if err != nil {
 		return err
@@ -85,41 +78,53 @@ func replaceTag(dryRun bool) error {
 	if err := removeTag(latest, dryRun); err != nil {
 		return err
 	}
-	if err := createTag(latest, dryRun); err != nil {
+	fmt.Println(latest)
+	return nil
+}
+
+func replaceTag(dryRun bool, message []string, file string) error {
+	latest, err := latestVer()
+	if err != nil {
+		return err
+	}
+	if err := removeTag(latest, dryRun); err != nil {
+		return err
+	}
+	if err := createTag(latest, dryRun, message, file); err != nil {
 		return err
 	}
 	fmt.Println(latest)
 	return nil
 }
 
-func incrementPatch(dryRun bool) error {
+func incrementPatch(dryRun bool, message []string, file string) error {
 	latest, err := latestVer()
 	if err != nil {
 		return err
 	}
 	latest.Patch++
-	if err := createTag(latest, dryRun); err != nil {
+	if err := createTag(latest, dryRun, message, file); err != nil {
 		return err
 	}
 	fmt.Println(latest)
 	return nil
 }
 
-func incrementMinor(dryRun bool) error {
+func incrementMinor(dryRun bool, message []string, file string) error {
 	latest, err := latestVer()
 	if err != nil {
 		return err
 	}
 	latest.Minor++
 	latest.Patch = 0
-	if err := createTag(latest, dryRun); err != nil {
+	if err := createTag(latest, dryRun, message, file); err != nil {
 		return err
 	}
 	fmt.Println(latest)
 	return nil
 }
 
-func incrementMajor(dryRun bool) error {
+func incrementMajor(dryRun bool, message []string, file string) error {
 	latest, err := latestVer()
 	if err != nil {
 		return err
@@ -127,7 +132,7 @@ func incrementMajor(dryRun bool) error {
 	latest.Major++
 	latest.Minor = 0
 	latest.Patch = 0
-	if err := createTag(latest, dryRun); err != nil {
+	if err := createTag(latest, dryRun, message, file); err != nil {
 		return err
 	}
 	fmt.Println(latest)
@@ -157,8 +162,15 @@ func (s *Semver) String() string {
 	return fmt.Sprintf("v%d.%d.%d", s.Major, s.Minor, s.Patch)
 }
 
-func createTag(v *Semver, dryRun bool) error {
-	git, _ := gitCmd("tag", v.String())
+func createTag(v *Semver, dryRun bool, message []string, file string) error {
+	args := []string{"tag"}
+	for _, m := range message {
+		args = append(args, "--message", m)
+	}
+	if file != "" {
+		args = append(args, "--file", file)
+	}
+	git, _ := gitCmd(append(args, v.String())...)
 	if dryRun {
 		w := csv.NewWriter(os.Stdout)
 		w.Comma = ' '
