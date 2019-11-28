@@ -3,8 +3,8 @@ release:
   github:
     owner: kyoh86
     name: git-vertag
-brew:
-  install: |
+brews:
+- install: |
     bin.install "git-vertag"
     man1.install "git-vertag.1"
   github:
@@ -26,7 +26,8 @@ builds:
   binary: git-vertag
   hooks:
     pre: make man
-archive:
+archives:
+- id: gzip
   format: tar.gz
   name_template: "{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
   files:
