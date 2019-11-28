@@ -4,9 +4,6 @@
 # for man file
 /git-vertag.1
 
-# go-junit-report output in .circleci/config
-/.circleci/test
-
 # Binaries for programs and plugins
 *.exe
 *.exe~
