@@ -6,6 +6,7 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"regexp"
@@ -33,36 +34,59 @@ func main() {
 	app.Flag("current-directory", "Run as if git was started in <path> instead of the current working directory.").Short('C').PlaceHolder("<path>").ExistingDirVar(&cwd)
 
 	var dryRun bool
+	var fetch bool
 	var message []string
 	var file string
+
 	getCmd := app.Command("get", "Gets the current version tag.").Default()
+	getCmd.Flag("fetch", "Fetch tags first").Default("true").BoolVar(&fetch)
+
+	deleteCmd := app.Command("delete", "Deletes a tag for the last version and prints it.")
+	deleteCmd.Flag("dry-run", "Without creating a new tag, show git command.").BoolVar(&dryRun)
+	deleteCmd.Flag("fetch", "Fetch tags first").Default("true").BoolVar(&fetch)
 
 	majorCmd := app.Command("major", "Creates a tag for the next major version and prints it.")
 	minorCmd := app.Command("minor", "Creates a tag for the next minor version and prints it.")
 	patchCmd := app.Command("patch", "Creates a tag for the next patch version and prints it.")
 	replaceCmd := app.Command("replace", "Replaces a tag for the last version and prints it.")
-	deleteCmd := app.Command("delete", "Deletes a tag for the last version and prints it.")
-	for _, c := range []*kingpin.CmdClause{majorCmd, minorCmd, patchCmd, replaceCmd, deleteCmd} {
+
+	for _, c := range []*kingpin.CmdClause{majorCmd, minorCmd, patchCmd, replaceCmd} {
 		c.Flag("dry-run", "Without creating a new tag, show git command.").BoolVar(&dryRun)
+		c.Flag("fetch", "Fetch tags first").Default("true").BoolVar(&fetch)
 		c.Flag("message", `Use the given tag message (instead of prompting). If multiple -m options are given, their values are concatenated as separate paragraphs.`).Short('m').StringsVar(&message)
 		c.Flag("file", `Take the tag message from the given file. Use - to read the message from the standard input`).Short('F').StringVar(&file)
 	}
 
-	cmds := map[string]func(bool, []string, string) error{
-		getCmd.FullCommand():     getVersion,
-		majorCmd.FullCommand():   incrementMajor,
-		minorCmd.FullCommand():   incrementMinor,
-		patchCmd.FullCommand():   incrementPatch,
-		replaceCmd.FullCommand(): replaceTag,
-		deleteCmd.FullCommand():  deleteTag,
-	}
-	if err := cmds[kingpin.MustParse(app.Parse(os.Args[1:]))](dryRun, message, file); err != nil {
-		panic(err)
+	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
+	case getCmd.FullCommand():
+		if err := getVersion(fetch); err != nil {
+			log.Fatal(err)
+		}
+	case majorCmd.FullCommand():
+		if err := incrementMajor(dryRun, fetch, message, file); err != nil {
+			log.Fatal(err)
+		}
+	case minorCmd.FullCommand():
+		if err := incrementMinor(dryRun, fetch, message, file); err != nil {
+			log.Fatal(err)
+		}
+	case patchCmd.FullCommand():
+		if err := incrementPatch(dryRun, fetch, message, file); err != nil {
+			log.Fatal(err)
+		}
+	case replaceCmd.FullCommand():
+		if err := replaceTag(dryRun, fetch, message, file); err != nil {
+			log.Fatal(err)
+		}
+	case deleteCmd.FullCommand():
+		if err := deleteTag(dryRun, fetch); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
-func getVersion(_ bool, _ []string, _ string) error {
-	latest, err := latestVer()
+func getVersion(fetch bool) error {
+	latest, err := latestVer(fetch)
 	if err != nil {
 		return err
 	}
@@ -70,8 +94,8 @@ func getVersion(_ bool, _ []string, _ string) error {
 	return nil
 }
 
-func deleteTag(dryRun bool, _ []string, _ string) error {
-	latest, err := latestVer()
+func deleteTag(dryRun bool, fetch bool) error {
+	latest, err := latestVer(fetch)
 	if err != nil {
 		return err
 	}
@@ -82,8 +106,8 @@ func deleteTag(dryRun bool, _ []string, _ string) error {
 	return nil
 }
 
-func replaceTag(dryRun bool, message []string, file string) error {
-	latest, err := latestVer()
+func replaceTag(dryRun bool, fetch bool, message []string, file string) error {
+	latest, err := latestVer(fetch)
 	if err != nil {
 		return err
 	}
@@ -97,8 +121,8 @@ func replaceTag(dryRun bool, message []string, file string) error {
 	return nil
 }
 
-func incrementPatch(dryRun bool, message []string, file string) error {
-	latest, err := latestVer()
+func incrementPatch(dryRun bool, fetch bool, message []string, file string) error {
+	latest, err := latestVer(fetch)
 	if err != nil {
 		return err
 	}
@@ -110,8 +134,8 @@ func incrementPatch(dryRun bool, message []string, file string) error {
 	return nil
 }
 
-func incrementMinor(dryRun bool, message []string, file string) error {
-	latest, err := latestVer()
+func incrementMinor(dryRun bool, fetch bool, message []string, file string) error {
+	latest, err := latestVer(fetch)
 	if err != nil {
 		return err
 	}
@@ -124,8 +148,8 @@ func incrementMinor(dryRun bool, message []string, file string) error {
 	return nil
 }
 
-func incrementMajor(dryRun bool, message []string, file string) error {
-	latest, err := latestVer()
+func incrementMajor(dryRun bool, fetch bool, message []string, file string) error {
+	latest, err := latestVer(fetch)
 	if err != nil {
 		return err
 	}
@@ -207,7 +231,13 @@ func removeTag(v *Semver, dryRun bool) error {
 	return nil
 }
 
-func latestVer() (*Semver, error) {
+func latestVer(fetch bool) (*Semver, error) {
+	if fetch {
+		git, _ := gitCmd("fetch", "--tags")
+		if err := git.Run(); err != nil {
+			return nil, err
+		}
+	}
 	git, stdout := gitCmd("tag", "-l")
 	if err := git.Run(); err != nil {
 		// var status = 1
