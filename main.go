@@ -53,15 +53,17 @@ func main() {
 
 	cmd := kingpin.MustParse(app.Parse(os.Args[1:]))
 
-	git := internal.NewGitCommand()
+	runner := internal.NewGitRunner()
 	if dryRun {
-		git = internal.NewMockCommand()
+		runner = internal.NewMockRunner()
 	}
 
 	mgr := internal.Manager{
-		Command: git,
-		Workdir: cwd,
-		Push:    push,
+		Tagger: internal.Tagger{
+			Runner:  runner,
+			Workdir: cwd,
+			Push:    push,
+		},
 	}
 
 	v, err := mgr.GetVer(fetch)

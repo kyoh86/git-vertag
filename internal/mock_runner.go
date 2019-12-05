@@ -6,16 +6,16 @@ import (
 	"os"
 )
 
-type MockCommand struct {
+type MockRunner struct {
 	echo   io.Writer
 	output io.Reader
 }
 
-func NewMockCommand() TagCommand {
-	return &MockCommand{echo: os.Stdout}
+func NewMockRunner() Runner {
+	return &MockRunner{echo: os.Stdout}
 }
 
-func (c *MockCommand) Run(stdout io.Writer, args ...string) error {
+func (c *MockRunner) Run(stdout io.Writer, args ...string) error {
 	w := csv.NewWriter(c.echo)
 	w.Comma = ' '
 	if err := w.Write(append([]string{"git"}, args...)); err != nil {

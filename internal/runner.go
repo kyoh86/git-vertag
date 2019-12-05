@@ -4,6 +4,6 @@ import (
 	"io"
 )
 
-type TagCommand interface {
+type Runner interface {
 	Run(stdout io.Writer, args ...string) error
 }
