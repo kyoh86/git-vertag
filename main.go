@@ -53,9 +53,18 @@ func main() {
 
 	cmd := kingpin.MustParse(app.Parse(os.Args[1:]))
 
-	git := internal.NewGitCommand(cwd, dryRun, push)
+	git := internal.NewGitCommand()
+	if dryRun {
+		git = internal.NewMockCommand()
+	}
 
-	v, err := git.LatestVer(fetch)
+	mgr := internal.Manager{
+		Command: git,
+		Workdir: cwd,
+		Push:    push,
+	}
+
+	v, err := mgr.GetVer(fetch)
 	if err != nil {
 		return
 	}
@@ -64,74 +73,30 @@ func main() {
 	case getCmd.FullCommand():
 		fmt.Println(v)
 	case majorCmd.FullCommand():
-		if err := incrementMajor(git, v, message, file); err != nil {
+		ver := v.Increment(internal.LevelMajor)
+		if err := mgr.CreateVer(ver, message, file); err != nil {
 			log.Fatal(err)
 		}
+		fmt.Println(ver)
 	case minorCmd.FullCommand():
-		if err := incrementMinor(git, v, message, file); err != nil {
+		ver := v.Increment(internal.LevelMinor)
+		if err := mgr.CreateVer(ver, message, file); err != nil {
 			log.Fatal(err)
 		}
+		fmt.Println(ver)
 	case patchCmd.FullCommand():
-		if err := incrementPatch(git, v, message, file); err != nil {
+		ver := v.Increment(internal.LevelPatch)
+		if err := mgr.CreateVer(ver, message, file); err != nil {
 			log.Fatal(err)
 		}
+		fmt.Println(ver)
 	case replaceCmd.FullCommand():
-		if err := replaceTag(git, v, message, file); err != nil {
+		if err := mgr.ReplaceVer(v, message, file); err != nil {
 			log.Fatal(err)
 		}
 	case deleteCmd.FullCommand():
-		if err := deleteTag(git, v); err != nil {
+		if err := mgr.DeleteVer(v); err != nil {
 			log.Fatal(err)
 		}
 	}
-}
-
-func deleteTag(git *internal.GitCommand, v *internal.Semver) error {
-	if err := git.RemoveTag(v); err != nil {
-		return err
-	}
-	fmt.Fprint(os.Stderr, "deleted: ")
-	fmt.Println(v)
-	return nil
-}
-
-func replaceTag(git *internal.GitCommand, v *internal.Semver, message []string, file string) error {
-	if err := git.RemoveTag(v); err != nil {
-		return err
-	}
-	if err := git.CreateTag(v, message, file); err != nil {
-		return err
-	}
-	fmt.Println(v)
-	return nil
-}
-
-func incrementPatch(git *internal.GitCommand, v *internal.Semver, message []string, file string) error {
-	v.Patch++
-	if err := git.CreateTag(v, message, file); err != nil {
-		return err
-	}
-	fmt.Println(v)
-	return nil
-}
-
-func incrementMinor(git *internal.GitCommand, v *internal.Semver, message []string, file string) error {
-	v.Minor++
-	v.Patch = 0
-	if err := git.CreateTag(v, message, file); err != nil {
-		return err
-	}
-	fmt.Println(v)
-	return nil
-}
-
-func incrementMajor(git *internal.GitCommand, v *internal.Semver, message []string, file string) error {
-	v.Major++
-	v.Minor = 0
-	v.Patch = 0
-	if err := git.CreateTag(v, message, file); err != nil {
-		return err
-	}
-	fmt.Println(v)
-	return nil
 }
