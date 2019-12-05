@@ -7,9 +7,17 @@ import (
 )
 
 type Tagger struct {
+	Remote  string
 	Runner  Runner
 	Workdir string
 	Push    bool
+}
+
+func NewTagger() Tagger {
+	return Tagger{
+		Runner: NewGitRunner(),
+		Remote: "origin",
+	}
 }
 
 func (t *Tagger) run(w io.Writer, args ...string) error {
@@ -20,21 +28,7 @@ func (t *Tagger) run(w io.Writer, args ...string) error {
 	}
 }
 
-func (t *Tagger) removeTag(tag string) error {
-	if err := t.run(nil, "tag", "-d", tag); err != nil {
-		return err
-	}
-
-	if t.Push {
-		// UNDONE: remote name (not only origin)
-		if err := t.run(nil, "push", "origin", ":"+tag); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (t *Tagger) createTag(tag string, message []string, file string) error {
+func (t *Tagger) CreateTag(tag string, message []string, file string) error {
 	args := []string{"tag"}
 	for _, t := range message {
 		args = append(args, "--message", t)
@@ -48,15 +42,27 @@ func (t *Tagger) createTag(tag string, message []string, file string) error {
 	}
 
 	if t.Push {
-		// UNDONE: remote name (not only origin)
-		if err := t.run(nil, "push", "origin", tag); err != nil {
+		if err := t.run(nil, "push", t.Remote, tag); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (t *Tagger) retrieveTags(fetch bool) ([]string, error) {
+func (t *Tagger) DeleteTag(tag string) error {
+	if err := t.run(nil, "tag", "-d", tag); err != nil {
+		return err
+	}
+
+	if t.Push {
+		if err := t.run(nil, "push", t.Remote, ":"+tag); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (t *Tagger) GetTags(fetch bool) ([]string, error) {
 	if fetch {
 		if err := t.run(nil, "fetch", "--tags"); err != nil {
 			return nil, err

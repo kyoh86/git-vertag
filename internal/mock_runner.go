@@ -23,7 +23,8 @@ func (c *MockRunner) Run(stdout io.Writer, args ...string) error {
 	}
 	w.Flush()
 	if stdout != nil && c.output != nil {
-		io.Copy(stdout, c.output)
+		_, err := io.Copy(stdout, c.output)
+		return err
 	}
 	return nil
 }

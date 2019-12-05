@@ -53,17 +53,17 @@ func main() {
 
 	cmd := kingpin.MustParse(app.Parse(os.Args[1:]))
 
-	runner := internal.NewGitRunner()
+	tag := internal.NewTagger()
+	//UNDONE: support setting remote name
+	//tag.Remote = "???"
 	if dryRun {
-		runner = internal.NewMockRunner()
+		tag.Runner = internal.NewMockRunner()
 	}
+	tag.Workdir = cwd
+	tag.Push = push
 
 	mgr := internal.Manager{
-		Tagger: internal.Tagger{
-			Runner:  runner,
-			Workdir: cwd,
-			Push:    push,
-		},
+		Tagger: tag,
 	}
 
 	v, err := mgr.GetVer(fetch)

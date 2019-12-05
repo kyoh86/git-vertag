@@ -5,16 +5,8 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 )
-
-// Semver :
-type Semver struct {
-	major uint64
-	minor uint64
-	patch uint64
-	level Level
-	notes string
-}
 
 type Level uint8
 
@@ -24,8 +16,36 @@ const (
 	LevelPatch
 )
 
+type Semver struct {
+	major uint64
+	minor uint64
+	patch uint64
+	level Level
+	notes string
+}
+
+func NewSemver(note string, levels ...uint64) (v Semver) {
+	if note != "" {
+		v.notes = "-" + note
+	}
+	for i, l := range levels {
+		v.level = Level(i)
+		switch i {
+		case 0:
+			v.major = l
+		case 1:
+			v.minor = l
+		case 2:
+			v.patch = l
+		default:
+			panic("invalid operation")
+		}
+	}
+	return
+}
+
 func (s Semver) Notes() string {
-	return s.notes
+	return strings.TrimPrefix(s.notes, "-")
 }
 
 func (s Semver) Level() Level {
