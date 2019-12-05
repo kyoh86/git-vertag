@@ -72,7 +72,7 @@ func TestManagerFS(t *testing.T) {
 	temp := func(t *testing.T) (*Manager, func()) {
 		dir, err := ioutil.TempDir("", "git-vertag-test")
 		if err != nil {
-			t.Errorf("failed to create temp dir %v", err)
+			t.Logf("failed to create temp dir %v", err)
 			t.Skip()
 		}
 		tag := NewTagger()
@@ -82,11 +82,11 @@ func TestManagerFS(t *testing.T) {
 	init := func(t *testing.T) (*Manager, func()) {
 		man, tear := temp(t)
 		if err := man.Tagger.run(nil, "init"); err != nil {
-			t.Errorf("failed to git init %v", err)
+			t.Logf("failed to git init %v", err)
 			t.Skip()
 		}
 		if err := man.Tagger.run(nil, "commit", "--allow-empty", "-m", "init"); err != nil {
-			t.Errorf("failed to create first commit %v", err)
+			t.Logf("failed to create first commit %v", err)
 			t.Skip()
 		}
 		return man, tear
