@@ -11,7 +11,7 @@ import (
 )
 
 func TestManager(t *testing.T) {
-	tset := func() (*bytes.Buffer, *MockRunner, *Manager) {
+	tset := func() (*bytes.Buffer, *MockRunner, *Manager) { //nolint
 		buffer := &bytes.Buffer{}
 		runner := &MockRunner{echo: buffer}
 		manager := &Manager{Tagger: Tagger{Remote: "test", Runner: runner}}
@@ -20,13 +20,13 @@ func TestManager(t *testing.T) {
 
 	t.Run("create ver", func(t *testing.T) {
 		buf, _, man := tset()
-		man.CreateVer(NewSemver("", 1, 2, 3), nil, "")
+		assert.NoError(t, man.CreateVer(NewSemver("", 1, 2, 3), nil, ""))
 		assert.Equal(t, "git tag v1.2.3\ngit tag v1.2\ngit tag v1\n", buf.String())
 	})
 
 	t.Run("replace ver", func(t *testing.T) {
 		buf, _, man := tset()
-		man.ReplaceVer(NewSemver("", 1, 2, 3), nil, "")
+		assert.NoError(t, man.ReplaceVer(NewSemver("", 1, 2, 3), nil, ""))
 		assert.Equal(t, `git tag -d v1.2.3
 git tag -d v1.2
 git tag -d v1
