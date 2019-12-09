@@ -21,18 +21,14 @@ func TestManager(t *testing.T) {
 	t.Run("create ver", func(t *testing.T) {
 		buf, _, man := tset()
 		assert.NoError(t, man.CreateVer(NewSemver("", 1, 2, 3), nil, ""))
-		assert.Equal(t, "git tag v1.2.3\ngit tag v1.2\ngit tag v1\n", buf.String())
+		assert.Equal(t, "git tag v1.2.3\n", buf.String())
 	})
 
 	t.Run("replace ver", func(t *testing.T) {
 		buf, _, man := tset()
 		assert.NoError(t, man.ReplaceVer(NewSemver("", 1, 2, 3), nil, ""))
 		assert.Equal(t, `git tag -d v1.2.3
-git tag -d v1.2
-git tag -d v1
 git tag v1.2.3
-git tag v1.2
-git tag v1
 `, buf.String())
 	})
 
