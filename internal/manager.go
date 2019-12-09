@@ -8,13 +8,6 @@ func (m *Manager) DeleteVer(v Semver) error {
 	if err := m.Tagger.DeleteTag(v.String()); err != nil {
 		return err
 	}
-	// TODO: traverse update versions with an option
-	// if v.Level() == LevelPatch {
-	// 	_ = m.Tagger.DeleteTag(v.MinorString())
-	// }
-	// if v.Level() != LevelMajor {
-	// 	_ = m.Tagger.DeleteTag(v.MajorString())
-	// }
 	return nil
 }
 
@@ -22,17 +15,6 @@ func (m *Manager) CreateVer(v Semver, message []string, file string) error {
 	if err := m.Tagger.CreateTag(v.String(), message, file); err != nil {
 		return err
 	}
-	// TODO: traverse update versions with an option
-	// if v.Level() == LevelPatch {
-	// 	if err := m.Tagger.CreateTag(v.MinorString(), message, file); err != nil {
-	// 		return err
-	// 	}
-	// }
-	// if v.Level() != LevelMajor {
-	// 	if err := m.Tagger.CreateTag(v.MajorString(), message, file); err != nil {
-	// 		return err
-	// 	}
-	// }
 	return nil
 }
 
