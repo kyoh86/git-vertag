@@ -47,6 +47,33 @@ func (v Semver) String() string {
 
 type PreRelease []PreReleaseID
 
+// IsCumlative implements kingpin.repeatableFlag
+func (p *PreRelease) IsCumulative() bool {
+	return true
+}
+
+func (p *PreRelease) Set(s string) error {
+	newp, err := ParsePreReleaseID(s)
+	if err != nil {
+		return err
+	}
+	*p = append(*p, newp)
+	return nil
+}
+
+func (p PreRelease) String() string {
+	if len(p) == 0 {
+		return ""
+	}
+	b := make([]byte, 0, len(p)*2-1)
+	b = append(b, p[0].str...)
+	for _, pre := range p[1:] {
+		b = append(b, '.')
+		b = append(b, pre.String()...)
+	}
+	return string(b)
+}
+
 type PreReleaseID struct {
 	str   string
 	num   uint64
@@ -57,10 +84,55 @@ func (p PreReleaseID) String() string {
 	return p.str
 }
 
+func (p *PreReleaseID) Set(s string) error {
+	newp, err := ParsePreReleaseID(s)
+	if err != nil {
+		return err
+	}
+	*p = newp
+	return nil
+}
+
 type Build []BuildID
+
+// IsCumlative implements kingpin.repeatableFlag
+func (b *Build) IsCumulative() bool {
+	return true
+}
+
+func (b *Build) Set(s string) error {
+	newb, err := ParseBuildID(s)
+	if err != nil {
+		return err
+	}
+	*b = append(*b, newb)
+	return nil
+}
+
+func (b Build) String() string {
+	if len(b) == 0 {
+		return ""
+	}
+	a := make([]byte, 0, len(b)*2-1)
+	a = append(a, b[0]...)
+	for _, pre := range b[1:] {
+		a = append(a, '.')
+		a = append(a, pre.String()...)
+	}
+	return string(a)
+}
 
 type BuildID string
 
 func (b BuildID) String() string {
 	return string(b)
+}
+
+func (b *BuildID) Set(s string) error {
+	newp, err := ParseBuildID(s)
+	if err != nil {
+		return err
+	}
+	*b = newp
+	return nil
 }

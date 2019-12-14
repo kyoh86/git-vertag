@@ -43,6 +43,7 @@ func main() {
 	majorCmd := app.Command("major", "Creates a tag for the next major version and prints it.")
 	minorCmd := app.Command("minor", "Creates a tag for the next minor version and prints it.")
 	patchCmd := app.Command("patch", "Creates a tag for the next patch version and prints it.")
+	preReleaseCmd := app.Command("pre-release", "Creates a tag for the last pre-release version and prints it.")
 	replaceCmd := app.Command("replace", "Replaces a tag for the last version and prints it.")
 
 	for _, c := range []*kingpin.CmdClause{majorCmd, minorCmd, patchCmd, replaceCmd} {
@@ -75,19 +76,19 @@ func main() {
 	case getCmd.FullCommand():
 		fmt.Println(v)
 	case majorCmd.FullCommand():
-		ver := v.Increment(internal.LevelMajor)
+		ver := v.Update().Major().Apply()
 		if err := mgr.CreateVer(ver, message, file); err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println(ver)
 	case minorCmd.FullCommand():
-		ver := v.Increment(internal.LevelMinor)
+		ver := v.Update().Minor().Apply()
 		if err := mgr.CreateVer(ver, message, file); err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println(ver)
 	case patchCmd.FullCommand():
-		ver := v.Increment(internal.LevelPatch)
+		ver := v.Update().Patch().Apply()
 		if err := mgr.CreateVer(ver, message, file); err != nil {
 			log.Fatal(err)
 		}

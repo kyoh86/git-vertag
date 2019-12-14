@@ -69,5 +69,8 @@ func (i *implUpdater) Build(b ...BuildID) Applier {
 }
 
 func (i *implUpdater) Apply() Semver {
+	// TODO:
+	// 1.0.0-alpha.1 => 1.0.0-alpha.2 : OK
+	// 1.0.0 => 1.0.0-alpha : NG ( 1.0.0 > 1.0.0-alpha )
 	return i.ver
 }
