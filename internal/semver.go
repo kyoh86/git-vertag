@@ -163,7 +163,7 @@ func (s Semver) String() string {
 
 var semverRegex = regexp.MustCompile(`^v?(?P<major>\d+)(\.(?P<minor>\d+))?(\.(?P<patch>\d+))?(?P<notes>-.*)?$`)
 
-func ParseSemver(s string) (Semver, error) {
+func Parse(s string) (Semver, error) {
 	ver := Semver{}
 	match := semverRegex.FindStringSubmatch(s)
 	if len(match) == 0 {

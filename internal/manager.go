@@ -35,7 +35,7 @@ func (m *Manager) GetVer(fetch bool) (Semver, error) {
 		return latest, err
 	}
 	for _, tag := range tags {
-		ver, err := ParseSemver(tag)
+		ver, err := Parse(tag)
 		if err != nil {
 			continue
 		}

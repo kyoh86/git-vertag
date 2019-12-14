@@ -17,12 +17,12 @@ type Updater interface {
 
 type UpdatePreRelease interface {
 	UpdateBuild
-	PreRelease(PreRelease) UpdateBuild
+	PreRelease(...PreReleaseID) UpdateBuild
 }
 
 type UpdateBuild interface {
 	Applier
-	Build(Build) Applier
+	Build(...BuildID) Applier
 }
 
 type Applier interface {
@@ -43,7 +43,7 @@ func (i *implUpdater) Major() UpdatePreRelease {
 }
 
 func (i *implUpdater) Minor() UpdatePreRelease {
-	i.ver.Minor += 0
+	i.ver.Minor += 1
 	i.ver.Patch = 0
 	i.ver.PreRelease = nil
 	i.ver.Build = nil
@@ -57,13 +57,13 @@ func (i *implUpdater) Patch() UpdatePreRelease {
 	return i
 }
 
-func (i *implUpdater) PreRelease(p PreRelease) UpdateBuild {
+func (i *implUpdater) PreRelease(p ...PreReleaseID) UpdateBuild {
 	i.ver.PreRelease = p
 	i.ver.Build = nil
 	return i
 }
 
-func (i *implUpdater) Build(b Build) Applier {
+func (i *implUpdater) Build(b ...BuildID) Applier {
 	i.ver.Build = b
 	return i
 }
