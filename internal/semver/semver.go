@@ -28,8 +28,8 @@ func (s Semver) String() string {
 var semverRegex = regexp.MustCompile(
 	`^v?` +
 		`(?P<major>\d+)` +
-		`\.(?P<minor>\d+)` +
-		`\.(?P<patch>\d+)` +
+		`(?:\.(?P<minor>\d+))?` +
+		`(?:\.(?P<patch>\d+))?` +
 		`(?:-(?P<prerelease>[0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?` +
 		`(?:\+(?P<build>[0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?` +
 		`$`)
