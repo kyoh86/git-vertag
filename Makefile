@@ -3,7 +3,13 @@
 VERSION := `git vertag get`
 COMMIT  := `git rev-parse HEAD`
 
-gen:
+.SUFFIXES: .y .go
+.y.go:
+	goyacc -o $@ $<
+	gofmt -w $@
+	rm y.output
+
+gen: ./internal/semver/parse.go
 	go generate ./...
 
 lint: gen

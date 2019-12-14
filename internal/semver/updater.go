@@ -1,13 +1,16 @@
 package semver
 
+import "errors"
+
 func (v Semver) Update() Updater {
 	return NewUpdater(v)
 }
 
 func NewUpdater(v Semver) Updater {
-	return &implUpdater{ver: v}
+	return &implUpdater{src: v, ver: v}
 }
 
+// Updater will update version without rewinds.
 type Updater interface {
 	UpdatePreRelease
 	Major() UpdatePreRelease
@@ -26,10 +29,11 @@ type UpdateBuild interface {
 }
 
 type Applier interface {
-	Apply() Semver
+	Apply() (Semver, error)
 }
 
 type implUpdater struct {
+	src Semver
 	ver Semver
 }
 
@@ -68,9 +72,9 @@ func (i *implUpdater) Build(b ...BuildID) Applier {
 	return i
 }
 
-func (i *implUpdater) Apply() Semver {
-	// TODO:
-	// 1.0.0-alpha.1 => 1.0.0-alpha.2 : OK
-	// 1.0.0 => 1.0.0-alpha : NG ( 1.0.0 > 1.0.0-alpha )
-	return i.ver
+func (i *implUpdater) Apply() (Semver, error) {
+	if i.src.Major == i.ver.Major && i.src.Minor == i.ver.Minor && i.src.Patch == i.ver.Patch && len(i.src.PreRelease) == 0 && len(i.ver.PreRelease) > 0 {
+		return Semver{}, errors.New("putting pre-release ID rewinds version order")
+	}
+	return i.ver, nil
 }

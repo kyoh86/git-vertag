@@ -7,6 +7,7 @@ import (
 
 	"github.com/alecthomas/kingpin"
 	"github.com/kyoh86/git-vertag/internal"
+	"github.com/kyoh86/git-vertag/internal/semver"
 )
 
 // nolint
@@ -33,6 +34,8 @@ func main() {
 
 	var message []string
 	var file string
+	var preRelease semver.PreRelease
+	var build semver.Build
 	var push bool
 
 	getCmd := app.Command("get", "Gets the current version tag.").Default()
@@ -43,12 +46,14 @@ func main() {
 	majorCmd := app.Command("major", "Creates a tag for the next major version and prints it.")
 	minorCmd := app.Command("minor", "Creates a tag for the next minor version and prints it.")
 	patchCmd := app.Command("patch", "Creates a tag for the next patch version and prints it.")
-	preReleaseCmd := app.Command("pre-release", "Creates a tag for the last pre-release version and prints it.")
-	replaceCmd := app.Command("replace", "Replaces a tag for the last version and prints it.")
+	// preReleaseCmd := app.Command("pre-release", "Creates a tag for the next pre-release version and prints it.")
+	// buildCmd := app.Command("build", "Creates a tag for the next build version and prints it.")
 
-	for _, c := range []*kingpin.CmdClause{majorCmd, minorCmd, patchCmd, replaceCmd} {
+	for _, c := range []*kingpin.CmdClause{majorCmd, minorCmd, patchCmd} {
 		c.Flag("message", `Use the given tag message (instead of prompting). If multiple -m options are given, their values are concatenated as separate paragraphs.`).Short('m').StringsVar(&message)
 		c.Flag("file", `Take the tag message from the given file. Use - to read the message from the standard input`).Short('F').StringVar(&file)
+		c.Flag("pre-release", `Update pre-release notation`).SetValue(&preRelease)
+		c.Flag("build", `Update build notation`).SetValue(&build)
 		c.Flag("push", `Push a new tag to remote`).BoolVar(&push)
 	}
 
@@ -76,27 +81,32 @@ func main() {
 	case getCmd.FullCommand():
 		fmt.Println(v)
 	case majorCmd.FullCommand():
-		ver := v.Update().Major().Apply()
+		ver, err := v.Update().Major().PreRelease(preRelease...).Build(build...).Apply()
+		if err != nil {
+			log.Fatal(err)
+		}
 		if err := mgr.CreateVer(ver, message, file); err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println(ver)
 	case minorCmd.FullCommand():
-		ver := v.Update().Minor().Apply()
+		ver, err := v.Update().Minor().PreRelease(preRelease...).Build(build...).Apply()
+		if err != nil {
+			log.Fatal(err)
+		}
 		if err := mgr.CreateVer(ver, message, file); err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println(ver)
 	case patchCmd.FullCommand():
-		ver := v.Update().Patch().Apply()
+		ver, err := v.Update().Patch().PreRelease(preRelease...).Build(build...).Apply()
+		if err != nil {
+			log.Fatal(err)
+		}
 		if err := mgr.CreateVer(ver, message, file); err != nil {
 			log.Fatal(err)
 		}
 		fmt.Println(ver)
-	case replaceCmd.FullCommand():
-		if err := mgr.ReplaceVer(v, message, file); err != nil {
-			log.Fatal(err)
-		}
 	case deleteCmd.FullCommand():
 		if err := mgr.DeleteVer(v); err != nil {
 			log.Fatal(err)

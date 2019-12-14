@@ -118,39 +118,48 @@ func TestSemver(t *testing.T) {
 			t.Run("set build", func(t *testing.T) {
 				semver, err := ParseTolerant("v1.2.3-alpha.4+build.5")
 				require.NoError(t, err)
-				v := semver.Update().
+				v, err := semver.Update().
 					Build(MustParseBuildID("build"), MustParseBuildID("6")).Apply()
+				require.NoError(t, err)
 				assert.Equal(t, "1.2.3-alpha.4+build.6", v.String())
 			})
 			t.Run("set pre-release and build", func(t *testing.T) {
 				semver, err := ParseTolerant("v1.2.3-alpha.4+build.5")
 				require.NoError(t, err)
-				v := semver.Update().
+				v, err := semver.Update().
 					PreRelease(MustParsePreReleaseID("beta"), MustParsePreReleaseID("6")).
 					Build(MustParseBuildID("build"), MustParseBuildID("7")).Apply()
+				require.NoError(t, err)
 				assert.Equal(t, "1.2.3-beta.6+build.7", v.String())
 			})
 			t.Run("set pre-release", func(t *testing.T) {
 				semver, err := ParseTolerant("v1.2.3-alpha.4+build.5")
 				require.NoError(t, err)
-				v := semver.Update().
+				v, err := semver.Update().
 					PreRelease(MustParsePreReleaseID("beta"), MustParsePreReleaseID("6")).Apply()
+				require.NoError(t, err)
 				assert.Equal(t, "1.2.3-beta.6", v.String())
 			})
 			t.Run("increment patch", func(t *testing.T) {
 				semver, err := ParseTolerant("v1.2.3-alpha.4+build.5")
 				require.NoError(t, err)
-				assert.Equal(t, "1.2.4", semver.Update().Patch().Apply().String())
+				v, err := semver.Update().Patch().Apply()
+				require.NoError(t, err)
+				assert.Equal(t, "1.2.4", v.String())
 			})
 			t.Run("increment minor", func(t *testing.T) {
 				semver, err := ParseTolerant("v1.2.3-alpha.4+build.5")
 				require.NoError(t, err)
-				assert.Equal(t, "1.3.0", semver.Update().Minor().Apply().String())
+				v, err := semver.Update().Minor().Apply()
+				assert.Equal(t, "1.3.0", v.String())
+				require.NoError(t, err)
 			})
 			t.Run("increment major", func(t *testing.T) {
 				semver, err := ParseTolerant("v1.2.3-alpha.4+build.5")
 				require.NoError(t, err)
-				assert.Equal(t, "2.0.0", semver.Update().Major().Apply().String())
+				v, err := semver.Update().Major().Apply()
+				require.NoError(t, err)
+				assert.Equal(t, "2.0.0", v.String())
 			})
 		})
 
@@ -158,17 +167,22 @@ func TestSemver(t *testing.T) {
 			t.Run("increment patch", func(t *testing.T) {
 				semver, err := ParseTolerant("v1.2.3-alpha.4")
 				require.NoError(t, err)
-				assert.Equal(t, "1.2.4", semver.Update().Patch().Apply().String())
+				v, err := semver.Update().Patch().Apply()
+				assert.Equal(t, "1.2.4", v.String())
 			})
 			t.Run("increment minor", func(t *testing.T) {
 				semver, err := ParseTolerant("v1.2.3-alpha.4")
 				require.NoError(t, err)
-				assert.Equal(t, "1.3.0", semver.Update().Minor().Apply().String())
+				v, err := semver.Update().Minor().Apply()
+				require.NoError(t, err)
+				assert.Equal(t, "1.3.0", v.String())
 			})
 			t.Run("increment major", func(t *testing.T) {
 				semver, err := ParseTolerant("v1.2.3-alpha.4")
 				require.NoError(t, err)
-				assert.Equal(t, "2.0.0", semver.Update().Major().Apply().String())
+				v, err := semver.Update().Major().Apply()
+				require.NoError(t, err)
+				assert.Equal(t, "2.0.0", v.String())
 			})
 		})
 
@@ -176,17 +190,23 @@ func TestSemver(t *testing.T) {
 			t.Run("increment patch", func(t *testing.T) {
 				semver, err := ParseTolerant("v1.2-alpha.4")
 				require.NoError(t, err)
-				assert.Equal(t, "1.2.1", semver.Update().Patch().Apply().String())
+				v, err := semver.Update().Patch().Apply()
+				require.NoError(t, err)
+				assert.Equal(t, "1.2.1", v.String())
 			})
 			t.Run("increment minor", func(t *testing.T) {
 				semver, err := ParseTolerant("v1.2-alpha.4")
 				require.NoError(t, err)
-				assert.Equal(t, "1.3.0", semver.Update().Minor().Apply().String())
+				v, err := semver.Update().Minor().Apply()
+				require.NoError(t, err)
+				assert.Equal(t, "1.3.0", v.String())
 			})
 			t.Run("increment major", func(t *testing.T) {
 				semver, err := ParseTolerant("v1.2-alpha.4")
 				require.NoError(t, err)
-				assert.Equal(t, "2.0.0", semver.Update().Major().Apply().String())
+				v, err := semver.Update().Major().Apply()
+				require.NoError(t, err)
+				assert.Equal(t, "2.0.0", v.String())
 			})
 		})
 
@@ -194,17 +214,23 @@ func TestSemver(t *testing.T) {
 			t.Run("increment patch", func(t *testing.T) {
 				semver, err := ParseTolerant("v1-alpha.4")
 				require.NoError(t, err)
-				assert.Equal(t, "1.0.1", semver.Update().Patch().Apply().String())
+				v, err := semver.Update().Patch().Apply()
+				require.NoError(t, err)
+				assert.Equal(t, "1.0.1", v.String())
 			})
 			t.Run("increment minor", func(t *testing.T) {
 				semver, err := ParseTolerant("v1-alpha.4")
 				require.NoError(t, err)
-				assert.Equal(t, "1.1.0", semver.Update().Minor().Apply().String())
+				v, err := semver.Update().Minor().Apply()
+				require.NoError(t, err)
+				assert.Equal(t, "1.1.0", v.String())
 			})
 			t.Run("increment major", func(t *testing.T) {
 				semver, err := ParseTolerant("v1-alpha.4")
 				require.NoError(t, err)
-				assert.Equal(t, "2.0.0", semver.Update().Major().Apply().String())
+				v, err := semver.Update().Major().Apply()
+				require.NoError(t, err)
+				assert.Equal(t, "2.0.0", v.String())
 			})
 		})
 	})
