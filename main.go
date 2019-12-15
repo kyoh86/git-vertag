@@ -27,10 +27,12 @@ func main() {
 	var cwd string
 	var dryRun bool
 	var fetch bool
+	var prefix string
 
 	app.Flag("current-directory", "Run as if git was started in <path> instead of the current working directory.").Short('C').PlaceHolder("<path>").ExistingDirVar(&cwd)
-	app.Flag("dry-run", "Without deleting tag, show git command.").BoolVar(&dryRun)
-	app.Flag("fetch", "Fetch tags first").Default("true").BoolVar(&fetch)
+	app.Flag("dry-run", "Without deleting tag, show git command.").Envar("GIT_VERTAG_DRYRUN").BoolVar(&dryRun)
+	app.Flag("fetch", "Fetch tags first").Envar("GIT_VERTAG_FETCH").Default("true").BoolVar(&fetch)
+	app.Flag("prefix", "Prefix for tag").Envar("GIT_VERTAG_PREFIX").Default("v").StringVar(&prefix)
 
 	var message []string
 	var file string
@@ -69,6 +71,7 @@ func main() {
 	tag.Push = push
 
 	mgr := internal.Manager{
+		Prefix: prefix,
 		Tagger: tag,
 	}
 
@@ -79,7 +82,7 @@ func main() {
 
 	switch cmd {
 	case getCmd.FullCommand():
-		fmt.Println(v)
+		fmt.Println(prefix + v.String())
 	case majorCmd.FullCommand():
 		ver, err := v.Update().Major().PreRelease(preRelease...).Build(build...).Apply()
 		if err != nil {
@@ -88,7 +91,7 @@ func main() {
 		if err := mgr.CreateVer(ver, message, file); err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(ver)
+		fmt.Println(prefix + ver.String())
 	case minorCmd.FullCommand():
 		ver, err := v.Update().Minor().PreRelease(preRelease...).Build(build...).Apply()
 		if err != nil {
@@ -97,7 +100,7 @@ func main() {
 		if err := mgr.CreateVer(ver, message, file); err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(ver)
+		fmt.Println(prefix + ver.String())
 	case patchCmd.FullCommand():
 		ver, err := v.Update().Patch().PreRelease(preRelease...).Build(build...).Apply()
 		if err != nil {
@@ -106,7 +109,7 @@ func main() {
 		if err := mgr.CreateVer(ver, message, file); err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(ver)
+		fmt.Println(prefix + ver.String())
 	case deleteCmd.FullCommand():
 		if err := mgr.DeleteVer(v); err != nil {
 			log.Fatal(err)
