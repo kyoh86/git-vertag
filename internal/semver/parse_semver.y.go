@@ -9,10 +9,9 @@ import __yyfmt__ "fmt"
 
 import (
 	"errors"
-	"fmt"
 )
 
-//line parse_semver.y:11
+//line parse_semver.y:10
 type semverSymType struct {
 	yys     int
 	ver     Semver
@@ -48,41 +47,57 @@ const semverEofCode = 1
 const semverErrCode = 2
 const semverInitialStackSize = 16
 
-//line parse_semver.y:160
+//line parse_semver.y:159
 
 type semverLexerImpl struct {
 	pos int
 	len int
 
-	bytes []byte
-	err   string
-
+	bytes  []byte
+	err    string
 	result Semver
-}
-
-var lexm = map[lex]int{
-	DOT:      int('.'),
-	PLUS:     int('+'),
-	HYPHEN:   SEMVER_HYPHEN,
-	LETTER:   SEMVER_LETTER,
-	POSITIVE: SEMVER_POSITIVE_DIGIT,
-	ZERO:     SEMVER_ZERO,
 }
 
 func (s *semverLexerImpl) Lex(lval *semverSymType) int {
 	if s.len <= s.pos {
 		return 0
 	}
-	n := s.bytes[s.pos]
+	lval.char = s.bytes[s.pos]
 	s.pos++
-	lval.char = n
 
-	l, ok := lexMap[n]
-	if !ok {
-		s.err = fmt.Sprintf("invalid char at %d", s.pos-1)
-		return int(n)
+	switch lval.char {
+	/* SEMVER_HYPHEN: '-' */
+	case B_HYPHEN:
+		return SEMVER_HYPHEN
+
+	/* SEMVER_ZERO: '0' */
+	case B_ZERO:
+		return SEMVER_ZERO
 	}
-	return lexm[l]
+
+	/* SEMVER_POSITIVE_DIGIT: '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' */
+	if B_ONE <= lval.char && lval.char <= B_NINE {
+		return SEMVER_POSITIVE_DIGIT
+	}
+
+	/* SEMVER_LETTER:
+	  'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J'
+	| 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T'
+	| 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | 'a' | 'b' | 'c' | 'd'
+	| 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n'
+	| 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x'
+	| 'y' | 'z' */
+	if B_UP_A <= lval.char && lval.char <= B_UP_Z || B_LOW_A <= lval.char && lval.char <= B_LOW_Z {
+		return SEMVER_LETTER
+	}
+
+	if lval.char == B_DOT || lval.char == B_PLUS {
+		return int(lval.char)
+	}
+
+	// other
+	s.err = "invalid char"
+	return int(lval.char)
 }
 
 func (s *semverLexerImpl) Error(err string) {
@@ -530,151 +545,151 @@ semverdefault:
 
 	case 1:
 		semverDollar = semverS[semverpt-5 : semverpt+1]
-//line parse_semver.y:44
+//line parse_semver.y:43
 		{
 			semverlex.(*semverLexerImpl).result = Semver{Major: numbytes(semverDollar[1].string), Minor: numbytes(semverDollar[3].string), Patch: numbytes(semverDollar[5].string)}
 		}
 	case 2:
 		semverDollar = semverS[semverpt-7 : semverpt+1]
-//line parse_semver.y:48
+//line parse_semver.y:47
 		{
 			semverlex.(*semverLexerImpl).result = Semver{Major: numbytes(semverDollar[1].string), Minor: numbytes(semverDollar[3].string), Patch: numbytes(semverDollar[5].string), PreRelease: semverDollar[7].pre}
 		}
 	case 3:
 		semverDollar = semverS[semverpt-7 : semverpt+1]
-//line parse_semver.y:52
+//line parse_semver.y:51
 		{
 			semverlex.(*semverLexerImpl).result = Semver{Major: numbytes(semverDollar[1].string), Minor: numbytes(semverDollar[3].string), Patch: numbytes(semverDollar[5].string), Build: semverDollar[7].bld}
 		}
 	case 4:
 		semverDollar = semverS[semverpt-9 : semverpt+1]
-//line parse_semver.y:56
+//line parse_semver.y:55
 		{
 			semverlex.(*semverLexerImpl).result = Semver{Major: numbytes(semverDollar[1].string), Minor: numbytes(semverDollar[3].string), Patch: numbytes(semverDollar[5].string), PreRelease: semverDollar[7].pre, Build: semverDollar[9].bld}
 		}
 	case 8:
 		semverDollar = semverS[semverpt-1 : semverpt+1]
-//line parse_semver.y:69
+//line parse_semver.y:68
 		{
 			semverVAL.pre = PreRelease(semverDollar[1].pre_ids)
 		}
 	case 9:
 		semverDollar = semverS[semverpt-1 : semverpt+1]
-//line parse_semver.y:75
+//line parse_semver.y:74
 		{
 			semverVAL.pre_ids = []PreReleaseID{semverDollar[1].pre_id}
 		}
 	case 10:
 		semverDollar = semverS[semverpt-3 : semverpt+1]
-//line parse_semver.y:79
+//line parse_semver.y:78
 		{
 			semverVAL.pre_ids = append([]PreReleaseID{semverDollar[1].pre_id}, semverDollar[3].pre_ids...)
 		}
 	case 11:
 		semverDollar = semverS[semverpt-1 : semverpt+1]
-//line parse_semver.y:85
+//line parse_semver.y:84
 		{
 			semverVAL.pre_id = PreReleaseID{str: string(semverDollar[1].string), isNum: false}
 		}
 	case 12:
 		semverDollar = semverS[semverpt-1 : semverpt+1]
-//line parse_semver.y:89
+//line parse_semver.y:88
 		{
 			semverVAL.pre_id = PreReleaseID{str: string(semverDollar[1].string), num: numbytes(semverDollar[1].string), isNum: true}
 		}
 	case 13:
 		semverDollar = semverS[semverpt-1 : semverpt+1]
-//line parse_semver.y:95
+//line parse_semver.y:94
 		{
 			semverVAL.bld = Build(semverDollar[1].bds)
 		}
 	case 14:
 		semverDollar = semverS[semverpt-1 : semverpt+1]
-//line parse_semver.y:100
+//line parse_semver.y:99
 		{
 			semverVAL.bds = []BuildID{semverDollar[1].bid}
 		}
 	case 15:
 		semverDollar = semverS[semverpt-3 : semverpt+1]
-//line parse_semver.y:104
+//line parse_semver.y:103
 		{
 			semverVAL.bds = append([]BuildID{semverDollar[1].bid}, semverDollar[3].bds...)
 		}
 	case 16:
 		semverDollar = semverS[semverpt-1 : semverpt+1]
-//line parse_semver.y:110
+//line parse_semver.y:109
 		{
 			semverVAL.bid = BuildID(string(semverDollar[1].string))
 		}
 	case 17:
 		semverDollar = semverS[semverpt-1 : semverpt+1]
-//line parse_semver.y:114
+//line parse_semver.y:113
 		{
 			semverVAL.bid = BuildID(string(semverDollar[1].string))
 		}
 	case 18:
 		semverDollar = semverS[semverpt-1 : semverpt+1]
-//line parse_semver.y:120
+//line parse_semver.y:119
 		{
 			semverVAL.string = []byte{semverDollar[1].char}
 		}
 	case 19:
 		semverDollar = semverS[semverpt-2 : semverpt+1]
-//line parse_semver.y:122
+//line parse_semver.y:121
 		{
 			semverVAL.string = append([]byte{semverDollar[1].char}, semverDollar[2].string...)
 		}
 	case 20:
 		semverDollar = semverS[semverpt-2 : semverpt+1]
-//line parse_semver.y:124
+//line parse_semver.y:123
 		{
 			semverVAL.string = append(semverDollar[1].string, semverDollar[2].char)
 		}
 	case 21:
 		semverDollar = semverS[semverpt-3 : semverpt+1]
-//line parse_semver.y:126
+//line parse_semver.y:125
 		{
 			semverVAL.string = append(append(semverDollar[1].string, semverDollar[2].char), semverDollar[3].string...)
 		}
 	case 22:
 		semverDollar = semverS[semverpt-1 : semverpt+1]
-//line parse_semver.y:130
+//line parse_semver.y:129
 		{
 			semverVAL.string = []byte{semverDollar[1].char}
 		}
 	case 23:
 		semverDollar = semverS[semverpt-2 : semverpt+1]
-//line parse_semver.y:132
+//line parse_semver.y:131
 		{
 			semverVAL.string = append([]byte{semverDollar[1].char}, semverDollar[2].string...)
 		}
 	case 28:
 		semverDollar = semverS[semverpt-1 : semverpt+1]
-//line parse_semver.y:144
+//line parse_semver.y:143
 		{
 			semverVAL.string = []byte{semverDollar[1].char}
 		}
 	case 29:
 		semverDollar = semverS[semverpt-1 : semverpt+1]
-//line parse_semver.y:146
+//line parse_semver.y:145
 		{
 			semverVAL.string = []byte{semverDollar[1].char}
 		}
 	case 30:
 		semverDollar = semverS[semverpt-2 : semverpt+1]
-//line parse_semver.y:148
+//line parse_semver.y:147
 		{
 			semverVAL.string = append([]byte{semverDollar[1].char}, semverDollar[2].string...)
 		}
 	case 31:
 		semverDollar = semverS[semverpt-1 : semverpt+1]
-//line parse_semver.y:152
+//line parse_semver.y:151
 		{
 			semverVAL.string = []byte{semverDollar[1].char}
 		}
 	case 32:
 		semverDollar = semverS[semverpt-2 : semverpt+1]
-//line parse_semver.y:154
+//line parse_semver.y:153
 		{
 			semverVAL.string = append([]byte{semverDollar[1].char}, semverDollar[2].string...)
 		}

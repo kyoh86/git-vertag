@@ -1,7 +1,16 @@
 package semver
 
 const (
-	B_ZERO = byte('0')
+	B_ZERO   = byte('0')
+	B_ONE    = byte('1')
+	B_NINE   = byte('9')
+	B_UP_A   = byte('A')
+	B_UP_Z   = byte('Z')
+	B_LOW_A  = byte('a')
+	B_LOW_Z  = byte('z')
+	B_HYPHEN = byte('-')
+	B_DOT    = byte('.')
+	B_PLUS   = byte('+')
 )
 
 func numbytes(b []byte) (i uint64) {
@@ -11,19 +20,17 @@ func numbytes(b []byte) (i uint64) {
 	return
 }
 
-type lex int
-
 const (
 	/* HYPHEN: '-' */
-	HYPHEN lex = iota
+	HYPHEN int = iota
 	LETTER
 	POSITIVE
 	ZERO
-	DOT  lex = lex('.')
-	PLUS lex = lex('+')
+	DOT  int = int('.')
+	PLUS int = int('+')
 )
 
-var lexMap = map[byte]lex{
+var lexMap = map[byte]int{
 	byte('-'): HYPHEN,
 	byte('0'): ZERO,
 	byte('1'): POSITIVE,
@@ -95,22 +102,26 @@ type lexerBase struct {
 	pos int
 	len int
 
+	lex   int
+	ok    bool
+	cur   byte
 	bytes []byte
 	err   string
-	lexm  map[lex]int
+
+	lexm map[int]int
 }
 
 func (s *lexerBase) chLex() (byte, int) {
 	if s.len <= s.pos {
 		return 0, 0
 	}
-	n := s.bytes[s.pos]
+	s.cur = s.bytes[s.pos]
 	s.pos++
-	l, ok := lexMap[n]
-	if !ok {
-		return n, int(n)
+	s.lex, s.ok = lexMap[s.cur]
+	if !s.ok {
+		return s.cur, int(s.cur)
 	}
-	return n, s.lexm[l]
+	return s.cur, s.lexm[s.lex]
 }
 
 func (s *lexerBase) Error(err string) {

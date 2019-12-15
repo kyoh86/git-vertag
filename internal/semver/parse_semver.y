@@ -2,7 +2,6 @@
 package semver
 
 import (
-  "fmt"
   "errors"
 )
 
@@ -165,33 +164,49 @@ type semverLexerImpl struct {
 
   bytes []byte
   err string
-
   result Semver
-}
-
-var lexm = map[lex]int {
-  DOT: int('.'),
-  PLUS: int('+'),
-	HYPHEN: SEMVER_HYPHEN,
-	LETTER: SEMVER_LETTER,
-	POSITIVE: SEMVER_POSITIVE_DIGIT,
-	ZERO  : SEMVER_ZERO,
 }
 
 func (s *semverLexerImpl) Lex(lval *semverSymType) int {
   if s.len <= s.pos {
     return 0
   }
-  n := s.bytes[s.pos]
+  lval.char = s.bytes[s.pos]
   s.pos++
-  lval.char = n
 
-	l, ok := lexMap[n]
-	if !ok {
-    s.err = fmt.Sprintf("invalid char at %d", s.pos-1)
-		return int(n)
-	}
-  return lexm[l]
+  switch lval.char {
+  /* SEMVER_HYPHEN: '-' */
+  case B_HYPHEN:
+    return SEMVER_HYPHEN
+
+  /* SEMVER_ZERO: '0' */
+  case B_ZERO:
+    return SEMVER_ZERO
+  }
+
+  /* SEMVER_POSITIVE_DIGIT: '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' */
+  if B_ONE <= lval.char && lval.char <= B_NINE {
+    return SEMVER_POSITIVE_DIGIT
+  }
+
+  /* SEMVER_LETTER:
+    'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J'
+  | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T'
+  | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | 'a' | 'b' | 'c' | 'd'
+  | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n'
+  | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x'
+  | 'y' | 'z' */
+  if B_UP_A <= lval.char && lval.char <= B_UP_Z || B_LOW_A <= lval.char && lval.char <= B_LOW_Z {
+    return SEMVER_LETTER
+  }
+
+  if lval.char == B_DOT  || lval.char == B_PLUS {
+    return int(lval.char)
+  }
+
+  // other
+  s.err = "invalid char"
+  return int(lval.char)
 }
 
 func (s *semverLexerImpl) Error(err string) {

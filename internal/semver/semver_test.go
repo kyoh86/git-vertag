@@ -18,6 +18,13 @@ func TestSemver(t *testing.T) {
 			assert.Equal(t, input, semver.String())
 		})
 
+		t.Run("big number", func(t *testing.T) {
+			input := "123.456.789-pre-release.234+build-ver.567"
+			semver, err := Parse(input)
+			require.NoError(t, err)
+			assert.Equal(t, input, semver.String())
+		})
+
 		t.Run("build", func(t *testing.T) {
 			input := "1.2.3+build-ver.5"
 			semver, err := Parse(input)
