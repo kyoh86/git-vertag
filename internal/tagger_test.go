@@ -12,7 +12,7 @@ func TestTagger(t *testing.T) {
 	tset := func() (*bytes.Buffer, *MockRunner, *Tagger) {
 		buffer := &bytes.Buffer{}
 		runner := &MockRunner{echo: buffer}
-		tagger := &Tagger{Remote: "test", Runner: runner}
+		tagger := &Tagger{Runner: runner}
 		return buffer, runner, tagger
 	}
 	t.Run("create tag", func(t *testing.T) {
@@ -36,14 +36,14 @@ func TestTagger(t *testing.T) {
 
 		t.Run("push", func(t *testing.T) {
 			buf, _, tag := tset()
-			tag.Push = true
+			tag.PushTo = "test"
 			assert.NoError(t, tag.CreateTag("dummy", nil, ""))
 			assert.Equal(t, "git tag dummy\ngit push test dummy\n", buf.String())
 		})
 
 		t.Run("workdir", func(t *testing.T) {
 			buf, _, tag := tset()
-			tag.Push = true
+			tag.PushTo = "test"
 			tag.Workdir = "dir"
 			assert.NoError(t, tag.CreateTag("dummy", nil, ""))
 			assert.Equal(t, "git -C dir tag dummy\ngit -C dir push test dummy\n", buf.String())
@@ -60,14 +60,14 @@ func TestTagger(t *testing.T) {
 
 		t.Run("push", func(t *testing.T) {
 			buf, _, tag := tset()
-			tag.Push = true
+			tag.PushTo = "test"
 			assert.NoError(t, tag.DeleteTag("dummy"))
 			assert.Equal(t, "git tag -d dummy\ngit push test :dummy\n", buf.String())
 		})
 
 		t.Run("workdir", func(t *testing.T) {
 			buf, _, tag := tset()
-			tag.Push = true
+			tag.PushTo = "test"
 			tag.Workdir = "dir"
 			assert.NoError(t, tag.DeleteTag("dummy"))
 			assert.Equal(t, "git -C dir tag -d dummy\ngit -C dir push test :dummy\n", buf.String())

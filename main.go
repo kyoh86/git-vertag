@@ -26,79 +26,89 @@ func main() {
 	var cwd string
 	var dryRun bool
 	var fetch bool
-
+	var prefix string
 	app.Flag("current-directory", "Run as if git was started in <path> instead of the current working directory.").Short('C').PlaceHolder("<path>").ExistingDirVar(&cwd)
-	app.Flag("dry-run", "Without deleting tag, show git command.").BoolVar(&dryRun)
-	app.Flag("fetch", "Fetch tags first").Default("true").BoolVar(&fetch)
-
-	var message []string
-	var file string
-	var push bool
+	app.Flag("dry-run", "Without deleting tag, show git command.").Envar("GIT_VERTAG_DRYRUN").BoolVar(&dryRun)
+	app.Flag("fetch", "Fetch tags first").Envar("GIT_VERTAG_FETCH").Default("true").BoolVar(&fetch)
+	app.Flag("prefix", "Prefix for tag").Envar("GIT_VERTAG_PREFIX").Default("v").StringVar(&prefix)
 
 	getCmd := app.Command("get", "Gets the current version tag.").Default()
-
-	deleteCmd := app.Command("delete", "Deletes a tag for the last version and prints it.")
-	deleteCmd.Flag("push", "Delete tag from remote.").BoolVar(&push)
-
 	majorCmd := app.Command("major", "Creates a tag for the next major version and prints it.")
 	minorCmd := app.Command("minor", "Creates a tag for the next minor version and prints it.")
 	patchCmd := app.Command("patch", "Creates a tag for the next patch version and prints it.")
-	replaceCmd := app.Command("replace", "Replaces a tag for the last version and prints it.")
+	releaseCmd := app.Command("release", "Creates a tag to remove pre-release meta information.")
+	preCmd := app.Command("pre", "Creates a tag for the next pre-release version and prints it.")
+	buildCmd := app.Command("build", "Creates a tag for the next build version and prints it.")
 
-	for _, c := range []*kingpin.CmdClause{majorCmd, minorCmd, patchCmd, replaceCmd} {
-		c.Flag("message", `Use the given tag message (instead of prompting). If multiple -m options are given, their values are concatenated as separate paragraphs.`).Short('m').StringsVar(&message)
-		c.Flag("file", `Take the tag message from the given file. Use - to read the message from the standard input`).Short('F').StringVar(&file)
-		c.Flag("push", `Push a new tag to remote`).BoolVar(&push)
+	var message []string
+	var file string
+	var pushTo string
+
+	for _, c := range []*kingpin.CmdClause{majorCmd, minorCmd, patchCmd, preCmd, buildCmd, releaseCmd} {
+		c.Flag("message", "Use the given tag message (instead of prompting). If multiple -m options are given, their values are concatenated as separate paragraphs.").Short('m').StringsVar(&message)
+		c.Flag("file", "Take the tag message from the given file. Use - to read the message from the standard input").Short('F').StringVar(&file)
+		c.Flag("push-to", "The remote repository that is destination of a push operation. This parameter can be either a URL or the name of a remote.").PlaceHolder("REPOSITORY").StringVar(&pushTo)
 	}
+
+	var pre internal.PreReleaseFlag
+	for _, c := range []*kingpin.CmdClause{majorCmd, minorCmd, patchCmd} {
+		c.Flag("pre", "Update pre-release notation. It accepts only alphanumeric or numeric identities.").SetValue(&pre)
+	}
+	preCmd.Arg("pre", "Pre-release notation. It accepts only alphanumeric or numeric identities.").Required().SetValue(&pre)
+
+	var build internal.BuildFlag
+	for _, c := range []*kingpin.CmdClause{majorCmd, minorCmd, patchCmd, preCmd, releaseCmd} {
+		c.Flag("build", "Update build notation. It accepts only alphanumeric or numeric identities.").SetValue(&build)
+	}
+	buildCmd.Arg("build", "Update build notation. It accepts only alphanumeric or numeric identities.").Required().SetValue(&build)
 
 	cmd := kingpin.MustParse(app.Parse(os.Args[1:]))
 
 	tag := internal.NewTagger()
-	//UNDONE: support setting remote name
-	//tag.Remote = "???"
 	if dryRun {
 		tag.Runner = internal.NewMockRunner()
 	}
+
 	tag.Workdir = cwd
-	tag.Push = push
+	tag.PushTo = pushTo
 
 	mgr := internal.Manager{
+		Prefix: prefix,
 		Tagger: tag,
-	}
-
-	v, err := mgr.GetVer(fetch)
-	if err != nil {
-		return
+		Fetch:  fetch,
 	}
 
 	switch cmd {
 	case getCmd.FullCommand():
+		v, err := mgr.GetVer()
+		if err != nil {
+			return
+		}
 		fmt.Println(v)
+
 	case majorCmd.FullCommand():
-		ver := v.Increment(internal.LevelMajor)
-		if err := mgr.CreateVer(ver, message, file); err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(ver)
+		printResult(mgr.UpdateMajor(pre, build, message, file))
+
 	case minorCmd.FullCommand():
-		ver := v.Increment(internal.LevelMinor)
-		if err := mgr.CreateVer(ver, message, file); err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(ver)
+		printResult(mgr.UpdateMinor(pre, build, message, file))
+
 	case patchCmd.FullCommand():
-		ver := v.Increment(internal.LevelPatch)
-		if err := mgr.CreateVer(ver, message, file); err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(ver)
-	case replaceCmd.FullCommand():
-		if err := mgr.ReplaceVer(v, message, file); err != nil {
-			log.Fatal(err)
-		}
-	case deleteCmd.FullCommand():
-		if err := mgr.DeleteVer(v); err != nil {
-			log.Fatal(err)
-		}
+		printResult(mgr.UpdatePatch(pre, build, message, file))
+
+	case preCmd.FullCommand():
+		printResult(mgr.UpdatePre(pre, build, message, file))
+
+	case releaseCmd.FullCommand():
+		printResult(mgr.Release(build, message, file))
+
+	case buildCmd.FullCommand():
+		printResult(mgr.Build(build, message, file))
 	}
+}
+
+func printResult(cur, next string, err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("update %s to %s\n", cur, next)
 }

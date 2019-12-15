@@ -7,16 +7,14 @@ import (
 )
 
 type Tagger struct {
-	Remote  string
 	Runner  Runner
 	Workdir string
-	Push    bool
+	PushTo  string
 }
 
 func NewTagger() Tagger {
 	return Tagger{
 		Runner: NewGitRunner(),
-		Remote: "origin",
 	}
 }
 
@@ -41,8 +39,8 @@ func (t *Tagger) CreateTag(tag string, message []string, file string) error {
 		return err
 	}
 
-	if t.Push {
-		if err := t.run(nil, "push", t.Remote, tag); err != nil {
+	if t.PushTo != "" {
+		if err := t.run(nil, "push", t.PushTo, tag); err != nil {
 			return err
 		}
 	}
@@ -54,8 +52,8 @@ func (t *Tagger) DeleteTag(tag string) error {
 		return err
 	}
 
-	if t.Push {
-		if err := t.run(nil, "push", t.Remote, ":"+tag); err != nil {
+	if t.PushTo != "" {
+		if err := t.run(nil, "push", t.PushTo, ":"+tag); err != nil {
 			return err
 		}
 	}
