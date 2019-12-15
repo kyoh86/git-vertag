@@ -86,7 +86,7 @@ pre_release_identifier:
     }
 | number
     {
-      $$ = PreReleaseID{ str: string($1), num: numbytes($1), isNum: true }
+      $$ = PreReleaseID{ str: strbytes($1), num: numbytes($1), isNum: true }
     }
 
 build:
@@ -111,7 +111,7 @@ build_identifier:
     }
 | digits
     {
-      $$ = BuildID(string($1))
+      $$ = BuildID(strbytes($1))
     }
 
 alphanum_identifier:
@@ -140,17 +140,29 @@ non_digit:
 
 number:
   SEMVER_ZERO
-    { $$ = []byte{$1} }
+    {
+      buf := make([]byte, 1, 5)
+      buf[0] = $1
+      $$ = buf
+    }
 | SEMVER_POSITIVE_DIGIT
-    { $$ = []byte{$1} }
+    {
+      buf := make([]byte, 1, 5)
+      buf[0] = $1
+      $$ = buf
+    }
 | SEMVER_POSITIVE_DIGIT number
-    { $$ = append([]byte{$1}, $2...) }
+    { $$ = append($2, $1) }
 
 digits:
   digit
-    { $$ = []byte{$1} }
+    {
+      buf := make([]byte, 1, 5)
+      buf[0] = $1
+      $$ = buf
+    }
 | digit digits
-    { $$ = append([]byte{$1}, $2...) }
+    { $$ = append($2, $1) }
 
 digit:
   SEMVER_ZERO

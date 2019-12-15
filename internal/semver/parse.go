@@ -13,11 +13,20 @@ const (
 	B_PLUS   = byte('+')
 )
 
-func numbytes(b []byte) (i uint64) {
-	for _, x := range b {
-		i = i*10 + uint64(x-B_ZERO)
+func numbytes(b []byte) (u uint64) {
+	for i := len(b) - 1; i >= 0; i-- {
+		u = u*10 + uint64(b[i]-B_ZERO)
 	}
 	return
+}
+
+// reverse orders inplece and convert to string
+func strbytes(b []byte) string {
+	for i := len(b)/2 - 1; i >= 0; i-- {
+		opp := len(b) - 1 - i
+		b[i], b[opp] = b[opp], b[i]
+	}
+	return string(b)
 }
 
 const (

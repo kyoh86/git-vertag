@@ -47,7 +47,7 @@ const semverEofCode = 1
 const semverErrCode = 2
 const semverInitialStackSize = 16
 
-//line parse_semver.y:159
+//line parse_semver.y:171
 
 type semverLexerImpl struct {
 	pos int
@@ -595,7 +595,7 @@ semverdefault:
 		semverDollar = semverS[semverpt-1 : semverpt+1]
 //line parse_semver.y:88
 		{
-			semverVAL.pre_id = PreReleaseID{str: string(semverDollar[1].string), num: numbytes(semverDollar[1].string), isNum: true}
+			semverVAL.pre_id = PreReleaseID{str: strbytes(semverDollar[1].string), num: numbytes(semverDollar[1].string), isNum: true}
 		}
 	case 13:
 		semverDollar = semverS[semverpt-1 : semverpt+1]
@@ -625,7 +625,7 @@ semverdefault:
 		semverDollar = semverS[semverpt-1 : semverpt+1]
 //line parse_semver.y:113
 		{
-			semverVAL.bid = BuildID(string(semverDollar[1].string))
+			semverVAL.bid = BuildID(strbytes(semverDollar[1].string))
 		}
 	case 18:
 		semverDollar = semverS[semverpt-1 : semverpt+1]
@@ -667,31 +667,37 @@ semverdefault:
 		semverDollar = semverS[semverpt-1 : semverpt+1]
 //line parse_semver.y:143
 		{
-			semverVAL.string = []byte{semverDollar[1].char}
+			buf := make([]byte, 1, 5)
+			buf[0] = semverDollar[1].char
+			semverVAL.string = buf
 		}
 	case 29:
 		semverDollar = semverS[semverpt-1 : semverpt+1]
-//line parse_semver.y:145
+//line parse_semver.y:149
 		{
-			semverVAL.string = []byte{semverDollar[1].char}
+			buf := make([]byte, 1, 5)
+			buf[0] = semverDollar[1].char
+			semverVAL.string = buf
 		}
 	case 30:
 		semverDollar = semverS[semverpt-2 : semverpt+1]
-//line parse_semver.y:147
+//line parse_semver.y:155
 		{
-			semverVAL.string = append([]byte{semverDollar[1].char}, semverDollar[2].string...)
+			semverVAL.string = append(semverDollar[2].string, semverDollar[1].char)
 		}
 	case 31:
 		semverDollar = semverS[semverpt-1 : semverpt+1]
-//line parse_semver.y:151
+//line parse_semver.y:159
 		{
-			semverVAL.string = []byte{semverDollar[1].char}
+			buf := make([]byte, 1, 5)
+			buf[0] = semverDollar[1].char
+			semverVAL.string = buf
 		}
 	case 32:
 		semverDollar = semverS[semverpt-2 : semverpt+1]
-//line parse_semver.y:153
+//line parse_semver.y:165
 		{
-			semverVAL.string = append([]byte{semverDollar[1].char}, semverDollar[2].string...)
+			semverVAL.string = append(semverDollar[2].string, semverDollar[1].char)
 		}
 	}
 	goto semverstack /* stack new state and value */
