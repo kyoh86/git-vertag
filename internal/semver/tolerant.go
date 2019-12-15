@@ -7,58 +7,6 @@ import (
 	"strings"
 )
 
-/*
-var semverRegex = regexp.MustCompile(
-	`^` +
-		`(?P<major>\d+)` +
-		`\.(?P<minor>\d+)` +
-		`\.(?P<patch>\d+)` +
-		`(?:-(?P<prerelease>[0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?` +
-		`(?:\+(?P<build>[0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?` +
-		`$`)
-
-func MustParse(s string) Semver {
-	v, err := Parse(s)
-	if err != nil {
-		panic(err)
-	}
-	return v
-}
-
-func Parse(s string) (Semver, error) {
-	ver := Semver{}
-	match := semverRegex.FindStringSubmatch(s)
-	if len(match) == 0 {
-		return ver, errors.New("invalid version syntax")
-	}
-	for i, name := range semverRegex.SubexpNames() {
-		if match[i] == "" {
-			continue
-		}
-		switch name {
-		case "major":
-			level, _ := strconv.ParseUint(match[i], 10, 64)
-			ver.Major = level
-		case "minor":
-			level, _ := strconv.ParseUint(match[i], 10, 64)
-			ver.Minor = level
-		case "patch":
-			level, _ := strconv.ParseUint(match[i], 10, 64)
-			ver.Patch = level
-		case "prerelease":
-			for _, s := range strings.Split(match[i], ".") {
-				ver.PreRelease = append(ver.PreRelease, parsePreReleaseID(s))
-			}
-		case "build":
-			for _, s := range strings.Split(match[i], ".") {
-				ver.Build = append(ver.Build, parseBuildID(s))
-			}
-		}
-	}
-	return ver, nil
-}
-*/
-
 var semverTolerantRegex = regexp.MustCompile(
 	`^v?` +
 		`(?P<major>\d+)` +

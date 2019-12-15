@@ -10,60 +10,175 @@ import (
 /* SPEC: https://semver.org/ */
 
 func TestSemver(t *testing.T) {
-	t.Run("parse and stringify", func(t *testing.T) {
+	t.Run("parse strict and stringify", func(t *testing.T) {
 		t.Run("full", func(t *testing.T) {
-			input := "1.2.3-alpha.4+build.5"
-			semver, err := ParseTolerant(input)
+			input := "1.2.3-pre-release.4+build-ver.5"
+			semver, err := Parse(input)
 			require.NoError(t, err)
 			assert.Equal(t, input, semver.String())
 		})
 
 		t.Run("build", func(t *testing.T) {
-			input := "1.2.3+build.5"
-			semver, err := ParseTolerant(input)
+			input := "1.2.3+build-ver.5"
+			semver, err := Parse(input)
 			require.NoError(t, err)
 			assert.Equal(t, input, semver.String())
 		})
 
 		t.Run("pre-release", func(t *testing.T) {
-			input := "1.2.3-alpha.4"
-			semver, err := ParseTolerant(input)
+			input := "1.2.3-pre-release.4"
+			semver, err := Parse(input)
 			require.NoError(t, err)
 			assert.Equal(t, input, semver.String())
 		})
 
 		t.Run("patch", func(t *testing.T) {
 			input := "1.2.3"
-			semver, err := ParseTolerant(input)
+			semver, err := Parse(input)
 			require.NoError(t, err)
 			assert.Equal(t, input, semver.String())
 		})
+	})
 
-		t.Run("minor-prerelease+build", func(t *testing.T) {
-			input := "v1.2-alpha.4+build.5"
+	t.Run("parse strict error", func(t *testing.T) {
+		t.Run("zero-started major", func(t *testing.T) {
+			input := "01.2.3-pre-release.4+build-ver.5"
+			_, err := Parse(input)
+			assert.Error(t, err)
+		})
+
+		t.Run("zero-started minor", func(t *testing.T) {
+			input := "1.02.3-pre-release.4+build-ver.5"
+			_, err := Parse(input)
+			assert.Error(t, err)
+		})
+
+		t.Run("zero-started pre-release", func(t *testing.T) {
+			input := "1.2.3-pre-release.04+build-ver.5"
+			_, err := Parse(input)
+			assert.Error(t, err)
+		})
+
+		t.Run("zero-started pre-release in tail", func(t *testing.T) {
+			input := "1.2.3-pre-release.04"
+			_, err := Parse(input)
+			assert.Error(t, err)
+		})
+
+		// NOTE: build identifiers can be zero-started
+
+		t.Run("empty major", func(t *testing.T) {
+			input := ".2.3-pre-release.4+build-ver.5"
+			_, err := Parse(input)
+			assert.Error(t, err)
+		})
+
+		t.Run("empty minor", func(t *testing.T) {
+			input := "1..3-pre-release.4+build-ver.5"
+			_, err := Parse(input)
+			assert.Error(t, err)
+		})
+
+		t.Run("empty patch", func(t *testing.T) {
+			input := "1.2.-pre-release.4+build-ver.5"
+			_, err := Parse(input)
+			assert.Error(t, err)
+		})
+
+		t.Run("empty first pre-release identifier", func(t *testing.T) {
+			input := "1.2.3-.4+build-ver.5"
+			_, err := Parse(input)
+			assert.Error(t, err)
+		})
+
+		t.Run("empty last pre-release identifier", func(t *testing.T) {
+			input := "1.2.3-pre-release.+build-ver.5"
+			_, err := Parse(input)
+			assert.Error(t, err)
+		})
+
+		t.Run("empty pre-release", func(t *testing.T) {
+			input := "1.2.3-+build-ver.5"
+			_, err := Parse(input)
+			assert.Error(t, err)
+		})
+
+		t.Run("empty first build identifier", func(t *testing.T) {
+			input := "1.2.3-pre-release.4+.5"
+			_, err := Parse(input)
+			assert.Error(t, err)
+		})
+
+		t.Run("empty last build identifier", func(t *testing.T) {
+			input := "1.2.3-pre-release.4+build."
+			_, err := Parse(input)
+			assert.Error(t, err)
+		})
+
+		t.Run("empty build", func(t *testing.T) {
+			input := "1.2.3-pre-release.4+"
+			_, err := Parse(input)
+			assert.Error(t, err)
+		})
+
+		t.Run("alphabetical major", func(t *testing.T) {
+			input := "a.2.3-pre-release.4+build-ver.5"
+			_, err := Parse(input)
+			assert.Error(t, err)
+		})
+
+		t.Run("alphabetical minor", func(t *testing.T) {
+			input := "1.a.3-pre-release.4+build-ver.5"
+			_, err := Parse(input)
+			assert.Error(t, err)
+		})
+
+		t.Run("alphabetical patch", func(t *testing.T) {
+			input := "1.2.a-pre-release.4+build-ver.5"
+			_, err := Parse(input)
+			assert.Error(t, err)
+		})
+
+		t.Run("invalid char in pre-release", func(t *testing.T) {
+			input := "1.2.3-pre*release.4+build-ver.5"
+			_, err := Parse(input)
+			assert.Error(t, err)
+		})
+
+		t.Run("invalid char in build", func(t *testing.T) {
+			input := "1.2.3-pre-release.4+build*ver.5"
+			_, err := Parse(input)
+			assert.Error(t, err)
+		})
+
+	})
+
+	t.Run("parse tolerant and stringify", func(t *testing.T) {
+		t.Run("minor-prerelease+build-ver", func(t *testing.T) {
+			input := "v1.2-pre-release.4+build-ver.5"
 			_, err := Parse(input)
 			assert.Error(t, err)
 			semver, err := ParseTolerant(input)
 			require.NoError(t, err)
-			assert.Equal(t, "1.2.0-alpha.4+build.5", semver.String())
+			assert.Equal(t, "1.2.0-pre-release.4+build-ver.5", semver.String())
 		})
 
 		t.Run("minor-prerelease", func(t *testing.T) {
-			input := "v1.2-alpha.4"
+			input := "v1.2-pre-release.4"
 			_, err := Parse(input)
 			assert.Error(t, err)
 			semver, err := ParseTolerant(input)
 			require.NoError(t, err)
-			assert.Equal(t, "1.2.0-alpha.4", semver.String())
+			assert.Equal(t, "1.2.0-pre-release.4", semver.String())
 		})
 
-		t.Run("minor+build", func(t *testing.T) {
-			input := "v1.2+build.5"
+		t.Run("minor+build-ver", func(t *testing.T) {
+			input := "v1.2+build-ver.5"
 			_, err := Parse(input)
 			assert.Error(t, err)
 			semver, err := ParseTolerant(input)
 			require.NoError(t, err)
-			assert.Equal(t, "1.2.0+build.5", semver.String())
+			assert.Equal(t, "1.2.0+build-ver.5", semver.String())
 		})
 
 		t.Run("minor", func(t *testing.T) {
@@ -75,31 +190,31 @@ func TestSemver(t *testing.T) {
 			assert.Equal(t, "1.2.0", semver.String())
 		})
 
-		t.Run("major-prerelease+build", func(t *testing.T) {
-			input := "v1-alpha.4+build.5"
+		t.Run("major-prerelease+build-ver", func(t *testing.T) {
+			input := "v1-pre-release.4+build-ver.5"
 			_, err := Parse(input)
 			assert.Error(t, err)
 			semver, err := ParseTolerant(input)
 			require.NoError(t, err)
-			assert.Equal(t, "1.0.0-alpha.4+build.5", semver.String())
+			assert.Equal(t, "1.0.0-pre-release.4+build-ver.5", semver.String())
 		})
 
 		t.Run("major-prerelease", func(t *testing.T) {
-			input := "v1-alpha.4"
+			input := "v1-pre-release.4"
 			_, err := Parse(input)
 			assert.Error(t, err)
 			semver, err := ParseTolerant(input)
 			require.NoError(t, err)
-			assert.Equal(t, "1.0.0-alpha.4", semver.String())
+			assert.Equal(t, "1.0.0-pre-release.4", semver.String())
 		})
 
-		t.Run("major+build", func(t *testing.T) {
-			input := "v1+build.5"
+		t.Run("major+build-ver", func(t *testing.T) {
+			input := "v1+build-ver.5"
 			_, err := Parse(input)
 			assert.Error(t, err)
 			semver, err := ParseTolerant(input)
 			require.NoError(t, err)
-			assert.Equal(t, "1.0.0+build.5", semver.String())
+			assert.Equal(t, "1.0.0+build-ver.5", semver.String())
 		})
 
 		t.Run("major", func(t *testing.T) {
@@ -114,26 +229,26 @@ func TestSemver(t *testing.T) {
 	})
 
 	t.Run("manipulate", func(t *testing.T) {
-		t.Run("source: pre-release+build", func(t *testing.T) {
+		t.Run("source: pre-release+build-ver", func(t *testing.T) {
 			t.Run("set build", func(t *testing.T) {
-				semver, err := ParseTolerant("v1.2.3-alpha.4+build.5")
+				semver, err := ParseTolerant("v1.2.3-pre-release.4+build-ver.5")
 				require.NoError(t, err)
 				v, err := semver.Update().
-					Build(MustParseBuildID("build"), MustParseBuildID("6")).Apply()
+					Build(MustParseBuildID("build-ver"), MustParseBuildID("6")).Apply()
 				require.NoError(t, err)
-				assert.Equal(t, "1.2.3-alpha.4+build.6", v.String())
+				assert.Equal(t, "1.2.3-pre-release.4+build-ver.6", v.String())
 			})
 			t.Run("set pre-release and build", func(t *testing.T) {
-				semver, err := ParseTolerant("v1.2.3-alpha.4+build.5")
+				semver, err := ParseTolerant("v1.2.3-pre-release.4+build-ver.5")
 				require.NoError(t, err)
 				v, err := semver.Update().
 					PreRelease(MustParsePreReleaseID("beta"), MustParsePreReleaseID("6")).
-					Build(MustParseBuildID("build"), MustParseBuildID("7")).Apply()
+					Build(MustParseBuildID("build-ver"), MustParseBuildID("7")).Apply()
 				require.NoError(t, err)
-				assert.Equal(t, "1.2.3-beta.6+build.7", v.String())
+				assert.Equal(t, "1.2.3-beta.6+build-ver.7", v.String())
 			})
 			t.Run("set pre-release", func(t *testing.T) {
-				semver, err := ParseTolerant("v1.2.3-alpha.4+build.5")
+				semver, err := ParseTolerant("v1.2.3-pre-release.4+build-ver.5")
 				require.NoError(t, err)
 				v, err := semver.Update().
 					PreRelease(MustParsePreReleaseID("beta"), MustParsePreReleaseID("6")).Apply()
@@ -141,21 +256,21 @@ func TestSemver(t *testing.T) {
 				assert.Equal(t, "1.2.3-beta.6", v.String())
 			})
 			t.Run("increment patch", func(t *testing.T) {
-				semver, err := ParseTolerant("v1.2.3-alpha.4+build.5")
+				semver, err := ParseTolerant("v1.2.3-pre-release.4+build-ver.5")
 				require.NoError(t, err)
 				v, err := semver.Update().Patch().Apply()
 				require.NoError(t, err)
 				assert.Equal(t, "1.2.4", v.String())
 			})
 			t.Run("increment minor", func(t *testing.T) {
-				semver, err := ParseTolerant("v1.2.3-alpha.4+build.5")
+				semver, err := ParseTolerant("v1.2.3-pre-release.4+build-ver.5")
 				require.NoError(t, err)
 				v, err := semver.Update().Minor().Apply()
 				assert.Equal(t, "1.3.0", v.String())
 				require.NoError(t, err)
 			})
 			t.Run("increment major", func(t *testing.T) {
-				semver, err := ParseTolerant("v1.2.3-alpha.4+build.5")
+				semver, err := ParseTolerant("v1.2.3-pre-release.4+build-ver.5")
 				require.NoError(t, err)
 				v, err := semver.Update().Major().Apply()
 				require.NoError(t, err)
@@ -165,20 +280,20 @@ func TestSemver(t *testing.T) {
 
 		t.Run("source: pre-release", func(t *testing.T) {
 			t.Run("increment patch", func(t *testing.T) {
-				semver, err := ParseTolerant("v1.2.3-alpha.4")
+				semver, err := ParseTolerant("v1.2.3-pre-release.4")
 				require.NoError(t, err)
 				v, err := semver.Update().Patch().Apply()
 				assert.Equal(t, "1.2.4", v.String())
 			})
 			t.Run("increment minor", func(t *testing.T) {
-				semver, err := ParseTolerant("v1.2.3-alpha.4")
+				semver, err := ParseTolerant("v1.2.3-pre-release.4")
 				require.NoError(t, err)
 				v, err := semver.Update().Minor().Apply()
 				require.NoError(t, err)
 				assert.Equal(t, "1.3.0", v.String())
 			})
 			t.Run("increment major", func(t *testing.T) {
-				semver, err := ParseTolerant("v1.2.3-alpha.4")
+				semver, err := ParseTolerant("v1.2.3-pre-release.4")
 				require.NoError(t, err)
 				v, err := semver.Update().Major().Apply()
 				require.NoError(t, err)
@@ -188,21 +303,21 @@ func TestSemver(t *testing.T) {
 
 		t.Run("minor", func(t *testing.T) {
 			t.Run("increment patch", func(t *testing.T) {
-				semver, err := ParseTolerant("v1.2-alpha.4")
+				semver, err := ParseTolerant("v1.2-pre-release.4")
 				require.NoError(t, err)
 				v, err := semver.Update().Patch().Apply()
 				require.NoError(t, err)
 				assert.Equal(t, "1.2.1", v.String())
 			})
 			t.Run("increment minor", func(t *testing.T) {
-				semver, err := ParseTolerant("v1.2-alpha.4")
+				semver, err := ParseTolerant("v1.2-pre-release.4")
 				require.NoError(t, err)
 				v, err := semver.Update().Minor().Apply()
 				require.NoError(t, err)
 				assert.Equal(t, "1.3.0", v.String())
 			})
 			t.Run("increment major", func(t *testing.T) {
-				semver, err := ParseTolerant("v1.2-alpha.4")
+				semver, err := ParseTolerant("v1.2-pre-release.4")
 				require.NoError(t, err)
 				v, err := semver.Update().Major().Apply()
 				require.NoError(t, err)
@@ -212,21 +327,21 @@ func TestSemver(t *testing.T) {
 
 		t.Run("major", func(t *testing.T) {
 			t.Run("increment patch", func(t *testing.T) {
-				semver, err := ParseTolerant("v1-alpha.4")
+				semver, err := ParseTolerant("v1-pre-release.4")
 				require.NoError(t, err)
 				v, err := semver.Update().Patch().Apply()
 				require.NoError(t, err)
 				assert.Equal(t, "1.0.1", v.String())
 			})
 			t.Run("increment minor", func(t *testing.T) {
-				semver, err := ParseTolerant("v1-alpha.4")
+				semver, err := ParseTolerant("v1-pre-release.4")
 				require.NoError(t, err)
 				v, err := semver.Update().Minor().Apply()
 				require.NoError(t, err)
 				assert.Equal(t, "1.1.0", v.String())
 			})
 			t.Run("increment major", func(t *testing.T) {
-				semver, err := ParseTolerant("v1-alpha.4")
+				semver, err := ParseTolerant("v1-pre-release.4")
 				require.NoError(t, err)
 				v, err := semver.Update().Major().Apply()
 				require.NoError(t, err)

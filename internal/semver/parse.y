@@ -172,45 +172,37 @@ func (s *semverLexer) Lex(lval *yySymType) int {
   n := s.raw[s.index]
   s.index++
   switch n {
-    /* HYPHEN: '-' */
-    case '-':
-      return HYPHEN
-    /* ZERO: '0' */
-    case '0':
-      lval.num = num{ num: 0, str: "0" }
-      return ZERO
-    /* POSITIVE_DIGIT: '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' */
-    case '1', '2', '3', '4', '5', '6', '7', '8', '9':
-      lval.num = num{ num: int(n-'0'), str: string([]rune{n}) }
-      return POSITIVE_DIGIT
-    /* LETTER:
-      'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J'
-    | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T'
-    | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | 'a' | 'b' | 'c' | 'd'
-    | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n'
-    | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x'
-    | 'y' | 'z' */
-    case 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J':
-      lval.str = string([]rune{n})
-      return LETTER
-    case 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T':
-      lval.str = string([]rune{n})
-      return LETTER
-    case 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd':
-      lval.str = string([]rune{n})
-      return LETTER
-    case 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n':
-      lval.str = string([]rune{n})
-      return LETTER
-    case 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x':
-      lval.str = string([]rune{n})
-      return LETTER
-    case 'y', 'z':
-      lval.str = string([]rune{n})
-      return LETTER
-    default:
-      return int(n)
+  /* HYPHEN: '-' */
+  case '-':
+    lval.str = "-"
+    return HYPHEN
+
+  /* ZERO: '0' */
+  case '0':
+    lval.num = num{ num: 0, str: "0" }
+    return ZERO
   }
+
+  /* POSITIVE_DIGIT: '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' */
+  if '1' <= n && n <= '9' {
+    lval.num = num{ num: int(n-'0'), str: string([]rune{n}) }
+    return POSITIVE_DIGIT
+  }
+
+  /* LETTER:
+    'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J'
+  | 'K' | 'L' | 'M' | 'N' | 'O' | 'P' | 'Q' | 'R' | 'S' | 'T'
+  | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | 'a' | 'b' | 'c' | 'd'
+  | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n'
+  | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x'
+  | 'y' | 'z' */
+  if 'A' <= n && n <= 'Z' || 'a' <= n && n <= 'z' {
+    lval.str = string([]rune{n})
+    return LETTER
+  }
+
+  // other
+  return int(n)
 }
 
 func (s *semverLexer) Rune(r rune) int {
