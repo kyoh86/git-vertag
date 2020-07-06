@@ -1,15 +1,31 @@
 package internal
 
 import (
-	"strings"
-
 	"github.com/blang/semver"
+	"strconv"
+	"strings"
 )
 
 type Manager struct {
-	Fetch  bool
-	Prefix string
-	Tagger Tagger
+	Fetch     bool
+	Prefix    string
+	Tagger    Tagger
+	Ancestors bool
+}
+
+func (m *Manager) ancestors(v semver.Version) []string {
+	if !m.Ancestors {
+		return nil
+	}
+	var ancs []string
+	b := make([]byte, 0, 3)
+	b = strconv.AppendUint(b, v.Major, 10)
+	ancs = append(ancs, m.Prefix+string(b))
+
+	b = append(b, '.')
+	b = strconv.AppendUint(b, v.Minor, 10)
+	ancs = append(ancs, m.Prefix+string(b))
+	return ancs
 }
 
 func (m *Manager) deleteVer(v semver.Version) error {
@@ -88,8 +104,17 @@ func (m *Manager) update(
 	if err != nil {
 		return "", "", err
 	}
-	if err = m.createVer(next, msg, file); err != nil {
+	if err := m.createVer(next, msg, file); err != nil {
 		return "", "", err
+	}
+	for _, anc := range m.ancestors(next) {
+		if err := m.Tagger.DeleteTag(anc); err != nil {
+			// noop
+			_ = err
+		}
+		if err := m.Tagger.CreateTag(anc, msg, file); err != nil {
+			return "", "", err
+		}
 	}
 	return m.Prefix + cur.String(), m.Prefix + next.String(), nil
 }

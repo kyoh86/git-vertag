@@ -27,10 +27,12 @@ func main() {
 	var dryRun bool
 	var fetch bool
 	var prefix string
+	var ancestors bool
 	app.Flag("current-directory", "Run as if git was started in <path> instead of the current working directory.").Short('C').PlaceHolder("<path>").ExistingDirVar(&cwd)
 	app.Flag("dry-run", "Without deleting tag, show git command.").Envar("GIT_VERTAG_DRYRUN").BoolVar(&dryRun)
 	app.Flag("fetch", "Fetch tags first").Envar("GIT_VERTAG_FETCH").Default("true").BoolVar(&fetch)
 	app.Flag("prefix", "Prefix for tag").Envar("GIT_VERTAG_PREFIX").Default("v").StringVar(&prefix)
+	app.Flag("ancestors", "With ancestor versions (vN and vN.N)").Envar("GIT_VERTAG_ANCESTORS").BoolVar(&ancestors)
 
 	getCmd := app.Command("get", "Gets the current version tag.").Default()
 	majorCmd := app.Command("major", "Creates a tag for the next major version and prints it.")
@@ -73,9 +75,10 @@ func main() {
 	tag.PushTo = pushTo
 
 	mgr := internal.Manager{
-		Prefix: prefix,
-		Tagger: tag,
-		Fetch:  fetch,
+		Prefix:    prefix,
+		Tagger:    tag,
+		Fetch:     fetch,
+		Ancestors: ancestors,
 	}
 
 	switch cmd {
