@@ -1,0 +1,16 @@
+name: Git Vertag
+description: Put new git tag for next semantic version
+inputs:
+  method:
+    description: |
+      Which number to increment in the semantic versioning.
+      Set 'major', 'minor', 'patch' or 'release'.
+    required: true
+outputs:
+  vertag:
+    description: New tag with semantic version
+runs:
+  using: docker
+  image: ./action.Dockerfile
+  args:
+    - ${{ inputs.method }}
