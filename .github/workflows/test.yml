@@ -54,7 +54,7 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/git-vertag:draft
+            ghcr.io/${{ github.repository }}:draft
             docker.pkg.github.com/${{ github.repository }}/git-vertag:draft
 
   lint:
