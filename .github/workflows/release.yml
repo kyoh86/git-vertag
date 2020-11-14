@@ -41,5 +41,5 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/git-vertag:latest
-            ghcr.io/${{ github.repository_owner }}/git-vertag:${{ steps.get_tag.outputs.TAG }}
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ steps.get_tag.outputs.TAG }}
