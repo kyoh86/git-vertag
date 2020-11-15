@@ -34,13 +34,8 @@ archives:
       format: zip
   name_template: "{{ .Binary }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
   files:
-  - licence*
-  - LICENCE*
-  - license*
   - LICENSE*
-  - readme*
   - README*
-  - changelog*
   - CHANGELOG*
   - git-vertag.1
 snapshot:

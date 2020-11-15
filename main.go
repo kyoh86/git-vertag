@@ -64,7 +64,10 @@ func main() {
 	}
 	buildCmd.Arg("build", "Update build notation. It accepts only alphanumeric or numeric identities.").Required().SetValue(&build)
 
-	cmd := kingpin.MustParse(app.Parse(os.Args[1:]))
+	cmd, err := app.Parse(os.Args[1:])
+	if err != nil {
+		app.FatalUsage("%s", err)
+	}
 
 	tag := internal.NewTagger()
 	if dryRun {
