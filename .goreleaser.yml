@@ -7,7 +7,7 @@ brews:
       name: homebrew-tap
     folder: Formula
     homepage: https://github.com/kyoh86/git-vertag
-    description: GO GitHub project manager
+    description: A tool to manage version-tag with the semantic versioning specification.
 builds:
   - goos:
       - linux
