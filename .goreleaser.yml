@@ -18,7 +18,7 @@ builds:
       - arm
       - arm64
       - "386"
-    main: ./cmd/git-vertag
+    main: .
     hooks:
       post:
         - go get github.com/kyoh86/git-vertag
