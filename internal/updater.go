@@ -3,7 +3,7 @@ package internal
 import (
 	"errors"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 )
 
 func NewUpdater(v semver.Version) Updater {

@@ -1,9 +1,10 @@
 package internal
 
 import (
-	"github.com/blang/semver"
 	"strconv"
 	"strings"
+
+	"github.com/blang/semver/v4"
 )
 
 type Manager struct {
