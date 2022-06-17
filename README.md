@@ -2,8 +2,8 @@
 
 A tool to manage version-tag with the semantic versioning specification.
 
-This tool supports only `update` semantic versiong tags.
-So it won't delete, replase and rollback versions.
+This tool supports only `update` semantic versioning tags.
+So it will not delete, replace, or rollback versions.
 
 [![PkgGoDev](https://pkg.go.dev/badge/kyoh86/git-vertag)](https://pkg.go.dev/kyoh86/git-vertag)
 [![Go Report Card](https://goreportcard.com/badge/github.com/kyoh86/git-vertag)](https://goreportcard.com/report/github.com/kyoh86/git-vertag)
@@ -13,7 +13,7 @@ So it won't delete, replase and rollback versions.
 ## Install
 
 ```
-go get github.com/kyoh86/git-vertag
+go install -v github.com/kyoh86/git-vertag@latest
 ```
 
 ## Usage
