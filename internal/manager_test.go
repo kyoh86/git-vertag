@@ -7,12 +7,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestManager(t *testing.T) {
-	tset := func() (*bytes.Buffer, *MockRunner, *Manager) { //nolint
+	tset := func() (*bytes.Buffer, *MockRunner, *Manager) { // nolint
 		buffer := &bytes.Buffer{}
 		runner := &MockRunner{echo: buffer}
 		manager := &Manager{Prefix: "test", Tagger: Tagger{Runner: runner}}

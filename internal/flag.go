@@ -3,7 +3,7 @@ package internal
 import (
 	"strings"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 )
 
 type PRVersionFlag semver.PRVersion
