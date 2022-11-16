@@ -2,7 +2,6 @@ package internal
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -136,7 +135,7 @@ func TestManager(t *testing.T) {
 func TestManagerFS(t *testing.T) {
 	temp := func(t *testing.T) (*Manager, func()) {
 		t.Helper()
-		dir, err := ioutil.TempDir("", "git-vertag-test")
+		dir, err := os.MkdirTemp("", "git-vertag-test")
 		if err != nil {
 			t.Logf("failed to create temp dir %v", err)
 			t.Skip()
