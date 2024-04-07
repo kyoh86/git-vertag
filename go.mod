@@ -3,7 +3,7 @@ module github.com/kyoh86/git-vertag
 require (
 	github.com/alecthomas/kingpin v2.2.6+incompatible
 	github.com/blang/semver/v4 v4.0.0
-	github.com/stretchr/testify v1.7.2
+	github.com/stretchr/testify v1.9.0
 )
 
 require (
