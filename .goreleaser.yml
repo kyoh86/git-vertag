@@ -21,10 +21,10 @@ brews:
   - install: |
       bin.install "git-vertag"
       man1.install Dir.glob('git-vertag*.1')
-    tap:
+    repository:
       owner: kyoh86
       name: homebrew-tap
-    folder: Formula
+    directory: Formula
     homepage: https://github.com/kyoh86/git-vertag
     description: A tool to manage version-tag with the semantic versioning specification.
     license: MIT
