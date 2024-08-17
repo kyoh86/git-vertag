@@ -11,9 +11,9 @@ import (
 )
 
 func TestManager(t *testing.T) {
-	tset := func() (*bytes.Buffer, *MockRunner, *Manager) { // nolint
+	tset := func() (*bytes.Buffer, *EchoRunner, *Manager) { // nolint
 		buffer := &bytes.Buffer{}
-		runner := &MockRunner{echo: buffer}
+		runner := &EchoRunner{echo: buffer}
 		manager := &Manager{Prefix: "test", Tagger: Tagger{Runner: runner}}
 		return buffer, runner, manager
 	}

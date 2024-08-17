@@ -71,7 +71,7 @@ func main() {
 
 	tag := internal.NewTagger()
 	if dryRun {
-		tag.Runner = internal.NewMockRunner()
+		tag.Runner = internal.NewEchoRunner()
 	}
 
 	tag.Workdir = cwd
