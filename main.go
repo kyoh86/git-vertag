@@ -29,7 +29,7 @@ func main() {
 	var prefix string
 	var ancestors bool
 	app.Flag("current-directory", "Run as if git was started in <path> instead of the current working directory.").Short('C').PlaceHolder("<path>").ExistingDirVar(&cwd)
-	app.Flag("dry-run", "Without deleting tag, show git command.").Envar("GIT_VERTAG_DRYRUN").BoolVar(&dryRun)
+	app.Flag("dry-run", "Without creating nor deleting tag, show git command.").Envar("GIT_VERTAG_DRYRUN").BoolVar(&dryRun)
 	app.Flag("fetch", "Fetch tags first").Envar("GIT_VERTAG_FETCH").Default("true").BoolVar(&fetch)
 	app.Flag("prefix", "Prefix for tag").Envar("GIT_VERTAG_PREFIX").Default("v").StringVar(&prefix)
 	app.Flag("ancestors", "With ancestor versions (vN and vN.N)").Envar("GIT_VERTAG_ANCESTORS").BoolVar(&ancestors)
