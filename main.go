@@ -69,13 +69,14 @@ func main() {
 		app.FatalUsage("%s", err)
 	}
 
-	tag := internal.NewTagger()
+	tag := internal.Tagger{
+		Runner:  internal.NewGitRunner(),
+		Workdir: cwd,
+		PushTo:  pushTo,
+	}
 	if dryRun {
 		tag.Runner = internal.NewEchoRunner()
 	}
-
-	tag.Workdir = cwd
-	tag.PushTo = pushTo
 
 	mgr := internal.Manager{
 		Prefix:    prefix,

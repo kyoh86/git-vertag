@@ -140,8 +140,10 @@ func TestManagerFS(t *testing.T) {
 			t.Logf("failed to create temp dir %v", err)
 			t.Skip()
 		}
-		tag := NewTagger()
-		tag.Workdir = dir
+		tag := Tagger{
+			Runner:  NewGitRunner(),
+			Workdir: dir,
+		}
 		return &Manager{Tagger: tag}, func() { os.RemoveAll(dir) }
 	}
 	init := func(t *testing.T) (*Manager, func()) {

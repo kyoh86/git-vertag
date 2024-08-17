@@ -12,12 +12,6 @@ type Tagger struct {
 	PushTo  string
 }
 
-func NewTagger() Tagger {
-	return Tagger{
-		Runner: NewGitRunner(),
-	}
-}
-
 func (t *Tagger) run(w io.Writer, args ...string) error {
 	if t.Workdir != "" {
 		return t.Runner.Run(w, append([]string{"-C", t.Workdir}, args...)...)
