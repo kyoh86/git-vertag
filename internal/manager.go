@@ -8,9 +8,9 @@ import (
 )
 
 type Manager struct {
-	Fetch     bool
 	Prefix    string
 	Tagger    Tagger
+	Fetch     bool
 	Ancestors bool
 }
 
