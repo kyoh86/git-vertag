@@ -35,6 +35,7 @@ func main() {
 	app.Flag("ancestors", "With ancestor versions (vN and vN.N)").Envar("GIT_VERTAG_ANCESTORS").BoolVar(&ancestors)
 
 	getCmd := app.Command("get", "Gets the current version tag.").Default()
+	deleteCmd := app.Command("delete", "Deletes the current version tag.")
 	majorCmd := app.Command("major", "Creates a tag for the next major version and prints it.")
 	minorCmd := app.Command("minor", "Creates a tag for the next minor version and prints it.")
 	patchCmd := app.Command("patch", "Creates a tag for the next patch version and prints it.")
@@ -89,6 +90,13 @@ func main() {
 	switch cmd {
 	case getCmd.FullCommand():
 		v, err := mgr.GetVer()
+		if err != nil {
+			return
+		}
+		fmt.Println(v)
+
+	case deleteCmd.FullCommand():
+		v, err := mgr.DeleteVer()
 		if err != nil {
 			return
 		}

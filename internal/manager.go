@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -72,6 +73,25 @@ func (m *Manager) GetVer() (string, error) {
 		return "", err
 	}
 	return m.Prefix + v.String(), nil
+}
+
+func (m *Manager) DeleteVer() (string, error) {
+	{
+		vold, err := m.getVer()
+		if err != nil {
+			return "", fmt.Errorf("failed to get current ver: %w", err)
+		}
+		if err := m.deleteVer(vold); err != nil {
+			return "", fmt.Errorf("failed to delete ver: %w", err)
+		}
+	}
+	{
+		vnew, err := m.getVer()
+		if err != nil {
+			return "", fmt.Errorf("failed to refetch new ver: %w", err)
+		}
+		return m.Prefix + vnew.String(), nil
+	}
 }
 
 func (m *Manager) UpdateMajor(pre []semver.PRVersion, build, msg []string, file string) (string, string, error) {
