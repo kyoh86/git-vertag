@@ -149,11 +149,11 @@ func TestManagerFS(t *testing.T) {
 	init := func(t *testing.T) (*Manager, func()) {
 		t.Helper()
 		man, tear := temp(t)
-		if err := man.Tagger.run(nil, "init"); err != nil {
+		if err := man.Tagger.run(true, nil, "init"); err != nil {
 			t.Logf("failed to git init %v", err)
 			t.Skip()
 		}
-		if err := man.Tagger.run(nil, "commit", "--allow-empty", "-m", "init"); err != nil {
+		if err := man.Tagger.run(true, nil, "commit", "--allow-empty", "-m", "init"); err != nil {
 			t.Logf("failed to create first commit %v", err)
 			t.Skip()
 		}

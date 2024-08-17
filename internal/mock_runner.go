@@ -15,7 +15,7 @@ func NewMockRunner() Runner {
 	return &MockRunner{echo: os.Stdout}
 }
 
-func (c *MockRunner) Run(stdout io.Writer, args ...string) error {
+func (c *MockRunner) Run(sideEffects bool, stdout io.Writer, args ...string) error {
 	w := csv.NewWriter(c.echo)
 	w.Comma = ' '
 	if err := w.Write(append([]string{"git"}, args...)); err != nil {
@@ -28,3 +28,5 @@ func (c *MockRunner) Run(stdout io.Writer, args ...string) error {
 	}
 	return nil
 }
+
+var _ Runner = (*MockRunner)(nil)

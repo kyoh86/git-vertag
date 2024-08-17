@@ -11,8 +11,10 @@ func NewGitRunner() Runner {
 	return &GitRunner{}
 }
 
-func (c *GitRunner) Run(stdout io.Writer, args ...string) error {
+func (c *GitRunner) Run(sideEffects bool, stdout io.Writer, args ...string) error {
 	cmd := exec.Command("git", args...)
 	cmd.Stdout = stdout
 	return cmd.Run()
 }
+
+var _ Runner = (*GitRunner)(nil)

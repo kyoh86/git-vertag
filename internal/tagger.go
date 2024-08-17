@@ -12,11 +12,11 @@ type Tagger struct {
 	PushTo  string
 }
 
-func (t *Tagger) run(w io.Writer, args ...string) error {
+func (t *Tagger) run(sideEffects bool, w io.Writer, args ...string) error {
 	if t.Workdir != "" {
-		return t.Runner.Run(w, append([]string{"-C", t.Workdir}, args...)...)
+		return t.Runner.Run(sideEffects, w, append([]string{"-C", t.Workdir}, args...)...)
 	} else {
-		return t.Runner.Run(w, args...)
+		return t.Runner.Run(sideEffects, w, args...)
 	}
 }
 
@@ -29,12 +29,12 @@ func (t *Tagger) CreateTag(tag string, message []string, file string) error {
 		args = append(args, "--file", file)
 	}
 
-	if err := t.run(nil, append(args, tag)...); err != nil {
+	if err := t.run(true, nil, append(args, tag)...); err != nil {
 		return err
 	}
 
 	if t.PushTo != "" {
-		if err := t.run(nil, "push", t.PushTo, tag); err != nil {
+		if err := t.run(true, nil, "push", t.PushTo, tag); err != nil {
 			return err
 		}
 	}
@@ -42,12 +42,12 @@ func (t *Tagger) CreateTag(tag string, message []string, file string) error {
 }
 
 func (t *Tagger) DeleteTag(tag string) error {
-	if err := t.run(nil, "tag", "-d", tag); err != nil {
+	if err := t.run(true, nil, "tag", "-d", tag); err != nil {
 		return err
 	}
 
 	if t.PushTo != "" {
-		if err := t.run(nil, "push", t.PushTo, ":"+tag); err != nil {
+		if err := t.run(true, nil, "push", t.PushTo, ":"+tag); err != nil {
 			return err
 		}
 	}
@@ -56,12 +56,12 @@ func (t *Tagger) DeleteTag(tag string) error {
 
 func (t *Tagger) GetTags(fetch bool) ([]string, error) {
 	if fetch {
-		if err := t.run(nil, "fetch", "--tags"); err != nil {
+		if err := t.run(true, nil, "fetch", "--tags"); err != nil {
 			return nil, err
 		}
 	}
 	var buf bytes.Buffer
-	if err := t.run(&buf, "tag", "-l"); err != nil {
+	if err := t.run(false, &buf, "tag", "-l"); err != nil {
 		return nil, err
 	}
 	var tags []string

@@ -69,13 +69,14 @@ func main() {
 		app.FatalUsage("%s", err)
 	}
 
+	runner := internal.NewGitRunner()
+	if dryRun {
+		runner = internal.NewDryRunner()
+	}
 	tag := internal.Tagger{
-		Runner:  internal.NewGitRunner(),
+		Runner:  runner,
 		Workdir: cwd,
 		PushTo:  pushTo,
-	}
-	if dryRun {
-		tag.Runner = internal.NewMockRunner()
 	}
 
 	mgr := internal.Manager{

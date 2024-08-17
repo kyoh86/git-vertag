@@ -5,5 +5,5 @@ import (
 )
 
 type Runner interface {
-	Run(stdout io.Writer, args ...string) error
+	Run(sideEffects bool, stdout io.Writer, args ...string) error
 }
