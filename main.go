@@ -75,7 +75,7 @@ func main() {
 		PushTo:  pushTo,
 	}
 	if dryRun {
-		tag.Runner = internal.NewEchoRunner()
+		tag.Runner = internal.NewMockRunner()
 	}
 
 	mgr := internal.Manager{

@@ -9,9 +9,9 @@ import (
 )
 
 func TestTagger(t *testing.T) {
-	tset := func() (*bytes.Buffer, *EchoRunner, *Tagger) {
+	tset := func() (*bytes.Buffer, *MockRunner, *Tagger) {
 		buffer := &bytes.Buffer{}
-		runner := &EchoRunner{echo: buffer}
+		runner := &MockRunner{echo: buffer}
 		tagger := &Tagger{Runner: runner}
 		return buffer, runner, tagger
 	}
