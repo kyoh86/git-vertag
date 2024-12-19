@@ -57,7 +57,7 @@ func main() {
 	for _, c := range []*kingpin.CmdClause{majorCmd, minorCmd, patchCmd} {
 		c.Flag("pre", "Update pre-release notation. It accepts only alphanumeric or numeric identities.").SetValue(&pre)
 	}
-	preCmd.Arg("pre", "Pre-release notation. It accepts only alphanumeric or numeric identities.").Required().SetValue(&pre)
+	preCmd.Arg("pre", "Pre-release notation. It accepts only alphanumeric or numeric identities.").SetValue(&pre)
 
 	var build internal.BuildFlag
 	for _, c := range []*kingpin.CmdClause{majorCmd, minorCmd, patchCmd, preCmd, releaseCmd} {
