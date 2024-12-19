@@ -26,12 +26,23 @@ type PreReleaseFlag []semver.PRVersion
 func (f PreReleaseFlag) IsCumulative() bool { return true }
 
 func (f *PreReleaseFlag) Set(s string) error {
-
-	v, err := semver.NewPRVersion(s)
-	if err != nil {
-		return err
+	words := strings.Split(s, ".")
+	switch len(words) {
+	case 0:
+		// noop
+	case 1:
+		v, err := semver.NewPRVersion(s)
+		if err != nil {
+			return err
+		}
+		*f = append(*f, v)
+	default:
+		for _, w := range words {
+			if err := f.Set(w); err != nil {
+				return err
+			}
+		}
 	}
-	*f = append(*f, v)
 	return nil
 }
 
