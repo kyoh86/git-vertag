@@ -21,6 +21,7 @@ type Updater interface {
 type UpdatePre interface {
 	UpdateBuild
 	Pre(...semver.PRVersion) UpdateBuild
+	Release() UpdateBuild
 }
 
 type UpdateBuild interface {
@@ -65,9 +66,38 @@ func (i implUpdater) Patch() UpdatePre {
 	return next
 }
 
+func incrementPre(pre []semver.PRVersion) []semver.PRVersion {
+	if len(pre) == 0 {
+		return nil
+	}
+	for i := len(pre) - 1; i >= 0; i-- {
+		if pre[i].IsNum {
+			ret := make([]semver.PRVersion, i+1)
+			copy(ret, pre[:i+1])
+			ret[i].VersionNum += 1
+			return ret
+		}
+	}
+	ret := make([]semver.PRVersion, len(pre)+1)
+	copy(ret, pre)
+	ret[len(pre)] = semver.PRVersion{VersionNum: 2}
+	return ret
+}
+
 func (i implUpdater) Pre(p ...semver.PRVersion) UpdateBuild {
 	next := i
-	next.ver.Pre = p
+	if len(p) == 0 {
+		next.ver.Pre = incrementPre(i.ver.Pre)
+	} else {
+		next.ver.Pre = p
+	}
+	next.ver.Build = nil
+	return next
+}
+
+func (i implUpdater) Release() UpdateBuild {
+	next := i
+	next.ver.Pre = nil
 	next.ver.Build = nil
 	return next
 }

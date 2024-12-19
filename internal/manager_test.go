@@ -89,6 +89,19 @@ func TestManager(t *testing.T) {
 			assert.Equal(t, "test1.2.3-test-pre.1+test-bld.2", next)
 			assert.Equal(t, "git tag -l\ngit tag --message test-msg test1.2.3-test-pre.1+test-bld.2\n", buf.String())
 		})
+		t.Run("increment pre-release", func(t *testing.T) {
+			buf, run, man := tset()
+			run.output = strings.NewReader("test1.2.3-pre-release.4+build-ver.5\n")
+			cur, next, err := man.UpdatePre(
+				nil,
+				[]string{"test-bld", "2"},
+				[]string{"test-msg"},
+				"")
+			assert.NoError(t, err)
+			assert.Equal(t, "test1.2.3-pre-release.4+build-ver.5", cur)
+			assert.Equal(t, "test1.2.3-pre-release.5+test-bld.2", next)
+			assert.Equal(t, "git tag -l\ngit tag --message test-msg test1.2.3-pre-release.5+test-bld.2\n", buf.String())
+		})
 		t.Run("increment patch", func(t *testing.T) {
 			buf, run, man := tset()
 			run.output = strings.NewReader("test1.2.3-pre-release.4+build-ver.5\n")

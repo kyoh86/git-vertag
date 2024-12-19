@@ -141,7 +141,7 @@ func (m *Manager) update(
 }
 
 func (m *Manager) Release(build, msg []string, file string) (string, string, error) {
-	return m.release(build, msg, file, func(u Updater) UpdateBuild { return u.Pre() })
+	return m.release(build, msg, file, func(u Updater) UpdateBuild { return u.Release() })
 }
 
 func (m *Manager) Build(build, msg []string, file string) (string, string, error) {
