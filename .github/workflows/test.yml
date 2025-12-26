@@ -53,8 +53,6 @@ jobs:
           go-version: 1.21
       - name: Search diagnostics
         uses: golangci/golangci-lint-action@v9
-        with:
-          version: v1.55.2
   set-releasable-status:
     name: 'Mark commit status "releasable"'
     runs-on: ubuntu-latest
