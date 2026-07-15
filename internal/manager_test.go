@@ -51,6 +51,45 @@ func TestManager(t *testing.T) {
 		})
 	})
 
+	t.Run("validate ver", func(t *testing.T) {
+		t.Run("valid tag", func(t *testing.T) {
+			buf, _, man := tset()
+			ver, err := man.ValidateVer("test1.2.3-pre.1+build.2")
+			assert.NoError(t, err)
+			assert.Equal(t, "test1.2.3-pre.1+build.2", ver)
+			assert.Empty(t, buf.String())
+		})
+
+		t.Run("invalid prefix", func(t *testing.T) {
+			_, _, man := tset()
+			_, err := man.ValidateVer("v1.2.3")
+			assert.ErrorIs(t, err, ErrInvalidVer)
+		})
+
+		t.Run("invalid version", func(t *testing.T) {
+			_, _, man := tset()
+			_, err := man.ValidateVer("test1.2")
+			assert.ErrorIs(t, err, ErrInvalidVer)
+		})
+
+		t.Run("valid tag at head", func(t *testing.T) {
+			buf, run, man := tset()
+			run.output = strings.NewReader("foo\ntest1.2.3\n")
+			ver, err := man.ValidateVer("")
+			assert.NoError(t, err)
+			assert.Equal(t, "test1.2.3", ver)
+			assert.Equal(t, "git tag --points-at HEAD\n", buf.String())
+		})
+
+		t.Run("without valid tag at head", func(t *testing.T) {
+			buf, run, man := tset()
+			run.output = strings.NewReader("foo\ntest1.2\n")
+			_, err := man.ValidateVer("")
+			assert.ErrorIs(t, err, ErrInvalidVer)
+			assert.Equal(t, "git tag --points-at HEAD\n", buf.String())
+		})
+	})
+
 	t.Run("update", func(t *testing.T) {
 		t.Run("build", func(t *testing.T) {
 			buf, run, man := tset()

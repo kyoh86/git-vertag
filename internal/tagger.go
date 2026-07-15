@@ -71,3 +71,16 @@ func (t *Tagger) GetTags(fetch bool) ([]string, error) {
 	}
 	return tags, nil
 }
+
+func (t *Tagger) GetTagsAtHead() ([]string, error) {
+	var buf bytes.Buffer
+	if err := t.run(false, &buf, "tag", "--points-at", "HEAD"); err != nil {
+		return nil, err
+	}
+	var tags []string
+	stream := bufio.NewScanner(&buf)
+	for stream.Scan() {
+		tags = append(tags, stream.Text())
+	}
+	return tags, nil
+}

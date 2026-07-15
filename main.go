@@ -35,6 +35,7 @@ func main() {
 	app.Flag("ancestors", "With ancestor versions (vN and vN.N)").Envar("GIT_VERTAG_ANCESTORS").BoolVar(&ancestors)
 
 	getCmd := app.Command("get", "Gets the current version tag.").Default()
+	validateCmd := app.Command("validate", "Validates a version tag.")
 	deleteCmd := app.Command("delete", "Deletes the current version tag.")
 	majorCmd := app.Command("major", "Creates a tag for the next major version and prints it.")
 	minorCmd := app.Command("minor", "Creates a tag for the next minor version and prints it.")
@@ -58,6 +59,9 @@ func main() {
 		c.Flag("pre", "Update pre-release notation. It accepts only alphanumeric or numeric identities.").SetValue(&pre)
 	}
 	preCmd.Arg("pre", "Pre-release notation. It accepts only alphanumeric or numeric identities.").SetValue(&pre)
+
+	var validateTag string
+	validateCmd.Arg("tag", "Tag to validate. If omitted, validates tags pointing at HEAD.").StringVar(&validateTag)
 
 	var build internal.BuildFlag
 	for _, c := range []*kingpin.CmdClause{majorCmd, minorCmd, patchCmd, preCmd, releaseCmd} {
@@ -92,6 +96,13 @@ func main() {
 		v, err := mgr.GetVer()
 		if err != nil {
 			return
+		}
+		fmt.Println(v)
+
+	case validateCmd.FullCommand():
+		v, err := mgr.ValidateVer(validateTag)
+		if err != nil {
+			log.Fatal(err)
 		}
 		fmt.Println(v)
 

@@ -23,6 +23,7 @@ There's some sub commands to manipulate versions.
 | Sub command   | Description                                                   |
 | ------------- | --------------------------------------------------------------|
 | get (default) | Gets the current version tag.                                 |
+| validate      | Validates a version tag.                                      |
 | major         | Creates a tag for the next major version and prints it.       |
 | minor         | Creates a tag for the next minor version and prints it.       |
 | patch         | Creates a tag for the next patch version and prints it.       |
@@ -67,6 +68,13 @@ $ git vertag
 v1.2.4-alpha.2
 $ git vertag release
 v1.2.4
+```
+
+### Case 5: Validate a version tag
+
+```console
+$ git vertag validate v1.2.3
+v1.2.3
 ```
 
 # LICENSE

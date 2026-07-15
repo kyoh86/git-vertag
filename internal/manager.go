@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -14,6 +15,8 @@ type Manager struct {
 	Fetch     bool
 	Ancestors bool
 }
+
+var ErrInvalidVer = errors.New("invalid vertag")
 
 func (m *Manager) ancestors(v semver.Version) []string {
 	if !m.Ancestors {
@@ -73,6 +76,34 @@ func (m *Manager) GetVer() (string, error) {
 		return "", err
 	}
 	return m.Prefix + v.String(), nil
+}
+
+func (m *Manager) validVer(tag string) bool {
+	if !strings.HasPrefix(tag, m.Prefix) {
+		return false
+	}
+	_, err := semver.Parse(strings.TrimPrefix(tag, m.Prefix))
+	return err == nil
+}
+
+func (m *Manager) ValidateVer(tag string) (string, error) {
+	if tag != "" {
+		if m.validVer(tag) {
+			return tag, nil
+		}
+		return "", fmt.Errorf("%w: %s", ErrInvalidVer, tag)
+	}
+
+	tags, err := m.Tagger.GetTagsAtHead()
+	if err != nil {
+		return "", err
+	}
+	for _, tag := range tags {
+		if m.validVer(tag) {
+			return tag, nil
+		}
+	}
+	return "", ErrInvalidVer
 }
 
 func (m *Manager) DeleteVer() (string, error) {

@@ -105,4 +105,25 @@ func TestTagger(t *testing.T) {
 		})
 
 	})
+
+	t.Run("get tag at head", func(t *testing.T) {
+		t.Run("plain", func(t *testing.T) {
+			buf, run, tag := tset()
+			run.output = strings.NewReader("foo\nbar\n")
+			tags, err := tag.GetTagsAtHead()
+			assert.NoError(t, err)
+			assert.Equal(t, "git tag --points-at HEAD\n", buf.String())
+			assert.Equal(t, []string{"foo", "bar"}, tags)
+		})
+
+		t.Run("workdir", func(t *testing.T) {
+			buf, run, tag := tset()
+			run.output = strings.NewReader("foo\nbar\n")
+			tag.Workdir = "dir"
+			tags, err := tag.GetTagsAtHead()
+			assert.NoError(t, err)
+			assert.Equal(t, "git -C dir tag --points-at HEAD\n", buf.String())
+			assert.Equal(t, []string{"foo", "bar"}, tags)
+		})
+	})
 }
